@@ -1,0 +1,677 @@
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  AdminStats,
+  AdminViewsResponse,
+  AdminUser,
+  getAdminStats,
+  getAdminViews,
+  adminLogout,
+  createAdminUser,
+} from '@/lib/api';
+
+export default function AdminDashboardPage() {
+  const router = useRouter();
+  const [token, setToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+
+  // Analytics & Logs State
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [viewsData, setViewsData] = useState<AdminViewsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Filters State
+  const [searchIp, setSearchIp] = useState('');
+  const [selectedVideo, setSelectedVideo] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<'logs' | 'videos' | 'ips'>('logs');
+
+  // New Admin Modal State
+  const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
+  const [adminName, setAdminName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminMsg, setAdminMsg] = useState<{ text: string; isError: boolean } | null>(null);
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+
+  // Verify auth on mount
+  useEffect(() => {
+    const savedToken = localStorage.getItem('checkhub_admin_token');
+    const savedUser = localStorage.getItem('checkhub_admin_user');
+
+    if (!savedToken) {
+      router.push('/admin/login');
+      return;
+    }
+
+    setToken(savedToken);
+    if (savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  }, [router]);
+
+  // Fetch Dashboard Data
+  const loadDashboardData = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [statsRes, viewsRes] = await Promise.all([
+        getAdminStats(token),
+        getAdminViews(token, {
+          search: searchIp,
+          video_id: selectedVideo,
+          date_from: dateFrom,
+          date_to: dateTo,
+          page,
+          per_page: 25,
+        }),
+      ]);
+
+      setStats(statsRes);
+      setViewsData(viewsRes);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch data';
+      setError(msg);
+      if (msg.includes('Unauthenticated') || msg.includes('401')) {
+        localStorage.removeItem('checkhub_admin_token');
+        router.push('/admin/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [token, searchIp, selectedVideo, dateFrom, dateTo, page, router]);
+
+  useEffect(() => {
+    if (token) {
+      loadDashboardData();
+    }
+  }, [token, loadDashboardData]);
+
+  const handleLogout = async () => {
+    if (token) {
+      await adminLogout(token);
+    }
+    localStorage.removeItem('checkhub_admin_token');
+    localStorage.removeItem('checkhub_admin_user');
+    router.push('/admin/login');
+  };
+
+  const handleExportCsv = () => {
+    if (!token) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    // Download via authenticated fetch
+    fetch(`${apiUrl}/admin/export`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `checkhub_video_views_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      })
+      .catch((e) => alert('Export failed: ' + e));
+  };
+
+  const handleCreateAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setCreatingAdmin(true);
+    setAdminMsg(null);
+
+    try {
+      await createAdminUser(token, {
+        name: adminName,
+        email: adminEmail,
+        password: adminPassword,
+      });
+      setAdminMsg({ text: `✓ Administrator [${adminEmail}] successfully created in MySQL database!`, isError: false });
+      setAdminName('');
+      setAdminEmail('');
+      setAdminPassword('');
+    } catch (err: unknown) {
+      setAdminMsg({ text: err instanceof Error ? err.message : 'Failed to create administrator', isError: true });
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    if (typeof navigator !== 'undefined') {
+      navigator.clipboard.writeText(text);
+      alert(`Copied IP: ${text}`);
+    }
+  };
+
+  return (
+    <div className="admin-wrapper">
+      {/* Top Navbar */}
+      <nav className="admin-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <Link href="/" className="admin-brand">
+            <div className="site-logo-badge">
+              <span className="logo-text">Check</span>
+              <span className="hub-pill">Hub</span>
+            </div>
+            <span className="admin-tag">ADMIN PORTAL</span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#10b981' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+            <span>MySQL: checkhub_db connected</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <Link
+            href="/"
+            className="admin-btn admin-btn-secondary"
+            style={{ fontSize: '0.82rem', padding: '0.4rem 0.8rem', textDecoration: 'none' }}
+          >
+            ← View Public Site
+          </Link>
+
+          {currentUser && (
+            <div className="admin-user-pill">
+              <div className="admin-avatar">{currentUser.name.charAt(0).toUpperCase()}</div>
+              <div className="admin-user-meta">
+                <span className="admin-user-name">{currentUser.name}</span>
+                <span className="admin-user-role">{currentUser.email} • {currentUser.role}</span>
+              </div>
+            </div>
+          )}
+
+          <button onClick={handleLogout} className="admin-btn-logout">
+            Sign Out
+          </button>
+        </div>
+      </nav>
+
+      <div className="admin-container">
+        {/* Header Row */}
+        <div className="admin-header-row">
+          <div className="admin-title-area">
+            <h1>Video Views &amp; User IP Analytics</h1>
+            <p>Every view event is recorded in the MySQL database with the user&apos;s IP address and exact timestamp.</p>
+          </div>
+
+          <div className="admin-header-actions">
+            <button onClick={loadDashboardData} className="admin-btn admin-btn-secondary" title="Reload from MySQL">
+              🔄 Refresh Data
+            </button>
+            <button onClick={handleExportCsv} className="admin-btn admin-btn-secondary">
+              📥 Export CSV
+            </button>
+            <button onClick={() => setIsAddAdminOpen(true)} className="admin-btn admin-btn-primary">
+              + Add Admin (DB)
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="admin-alert-box admin-alert-error" style={{ marginBottom: '1.5rem' }}>
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Metric Cards Grid */}
+        <div className="admin-metrics-grid">
+          <div className="admin-metric-card">
+            <div className="metric-header">
+              <span className="metric-label">Real Recorded Views</span>
+              <span className="metric-icon">👁️</span>
+            </div>
+            <div className="metric-value">
+              {stats ? stats.overview.real_views_recorded.toLocaleString() : '0'}
+            </div>
+            <div className="metric-sub">Logged in MySQL &apos;video_views&apos; table</div>
+          </div>
+
+          <div className="admin-metric-card accent-pink">
+            <div className="metric-header">
+              <span className="metric-label">Unique User IPs</span>
+              <span className="metric-icon">🌐</span>
+            </div>
+            <div className="metric-value">
+              {stats ? stats.overview.unique_ips.toLocaleString() : '0'}
+            </div>
+            <div className="metric-sub">Distinct IP addresses tracked</div>
+          </div>
+
+          <div className="admin-metric-card accent-cyan">
+            <div className="metric-header">
+              <span className="metric-label">Views Recorded Today</span>
+              <span className="metric-icon">📅</span>
+            </div>
+            <div className="metric-value">
+              {stats ? stats.overview.today_views.toLocaleString() : '0'}
+            </div>
+            <div className="metric-sub">Since 00:00:00 today</div>
+          </div>
+
+          <div className="admin-metric-card accent-green">
+            <div className="metric-header">
+              <span className="metric-label">Active Videos</span>
+              <span className="metric-icon">🎥</span>
+            </div>
+            <div className="metric-value">
+              {stats ? stats.overview.total_videos : '12'}
+            </div>
+            <div className="metric-sub">Awareness guides tracked in DB</div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`admin-btn ${activeTab === 'logs' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            style={{ borderRadius: '6px' }}
+          >
+            📋 Live View Logs (IP &amp; Timestamps)
+          </button>
+          <button
+            onClick={() => setActiveTab('videos')}
+            className={`admin-btn ${activeTab === 'videos' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            style={{ borderRadius: '6px' }}
+          >
+            📊 Views Per Video Breakdown
+          </button>
+          <button
+            onClick={() => setActiveTab('ips')}
+            className={`admin-btn ${activeTab === 'ips' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            style={{ borderRadius: '6px' }}
+          >
+            🌐 Top Active IP Addresses
+          </button>
+        </div>
+
+        {/* TAB 1: LIVE VIEW LOGS */}
+        {activeTab === 'logs' && (
+          <div>
+            {/* Filter Bar */}
+            <div className="admin-filter-bar">
+              <div className="admin-filter-left">
+                <div className="admin-search-box">
+                  <span className="admin-search-icon">🔍</span>
+                  <input
+                    type="text"
+                    className="admin-search-input"
+                    placeholder="Search by IP address (e.g. 192.168.1.1)..."
+                    value={searchIp}
+                    onChange={(e) => {
+                      setSearchIp(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+
+                <select
+                  value={selectedVideo}
+                  onChange={(e) => {
+                    setSelectedVideo(e.target.value);
+                    setPage(1);
+                  }}
+                  className="admin-select"
+                >
+                  <option value="all">All Videos</option>
+                  {stats?.videos_breakdown.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.id}: {v.title.slice(0, 32)}...
+                    </option>
+                  ))}
+                </select>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>From:</span>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => {
+                      setDateFrom(e.target.value);
+                      setPage(1);
+                    }}
+                    className="admin-date-input"
+                  />
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>To:</span>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => {
+                      setDateTo(e.target.value);
+                      setPage(1);
+                    }}
+                    className="admin-date-input"
+                  />
+                </div>
+
+                {(searchIp || selectedVideo !== 'all' || dateFrom || dateTo) && (
+                  <button
+                    onClick={() => {
+                      setSearchIp('');
+                      setSelectedVideo('all');
+                      setDateFrom('');
+                      setDateTo('');
+                      setPage(1);
+                    }}
+                    className="admin-btn-logout"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem' }}
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="admin-card-section">
+              <div className="admin-card-header">
+                <h3 className="admin-card-title">
+                  <span>📋 Real-Time View Stream</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                    ({viewsData?.pagination.total || 0} total records recorded in MySQL)
+                  </span>
+                </h3>
+              </div>
+
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Video ID &amp; Title</th>
+                      <th>User IP Address</th>
+                      <th>Date &amp; Time (Timestamp)</th>
+                      <th>Browser / Device (User Agent)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                          Loading records from MySQL...
+                        </td>
+                      </tr>
+                    ) : viewsData && viewsData.data.length > 0 ? (
+                      viewsData.data.map((row) => (
+                        <tr key={row.id}>
+                          <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>#{row.id}</td>
+                          <td>
+                            <div style={{ fontWeight: 700, color: '#fff' }}>{row.video_title}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                              ID: {row.video_id}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="ip-badge">
+                              <span>🌐 {row.ip_address}</span>
+                              <button
+                                onClick={() => copyToClipboard(row.ip_address)}
+                                className="ip-copy-btn"
+                                title="Copy IP Address"
+                              >
+                                📋
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="date-badge">
+                              🕒 {new Date(row.viewed_at).toLocaleString('en-US', {
+                                dateStyle: 'medium',
+                                timeStyle: 'medium',
+                              })}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="user-agent-text" title={row.user_agent || 'Unknown'}>
+                              {row.user_agent || 'Direct API / Localhost'}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                          No video views recorded yet. Open a video dialog on the home page to record your IP!
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {viewsData && viewsData.pagination.last_page > 1 && (
+                <div className="admin-pagination-bar">
+                  <span>
+                    Page {viewsData.pagination.current_page} of {viewsData.pagination.last_page} ({viewsData.pagination.total} total views)
+                  </span>
+                  <div className="pagination-controls">
+                    <button
+                      onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                      disabled={viewsData.pagination.current_page <= 1}
+                      className="page-btn"
+                    >
+                      ← Previous
+                    </button>
+                    <span style={{ padding: '0 0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      {viewsData.pagination.current_page}
+                    </span>
+                    <button
+                      onClick={() => setPage((p) => Math.min(p + 1, viewsData.pagination.last_page))}
+                      disabled={viewsData.pagination.current_page >= viewsData.pagination.last_page}
+                      className="page-btn"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: VIDEOS BREAKDOWN */}
+        {activeTab === 'videos' && (
+          <div className="admin-card-section">
+            <div className="admin-card-header">
+              <h3 className="admin-card-title">📊 Per-Video View &amp; IP Performance</h3>
+            </div>
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Video ID</th>
+                    <th>Video Title</th>
+                    <th>Category</th>
+                    <th>Real Recorded Views (DB)</th>
+                    <th>Unique IP Addresses</th>
+                    <th>Last Viewed Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats?.videos_breakdown.map((v) => (
+                    <tr key={v.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--hub-orange)' }}>{v.id}</td>
+                      <td style={{ fontWeight: 700, color: '#fff' }}>{v.title}</td>
+                      <td>
+                        <span style={{ background: 'rgba(255,255,255,0.06)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.78rem' }}>
+                          {v.category}
+                        </span>
+                      </td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981' }}>
+                        {v.real_recorded_views.toLocaleString()}
+                      </td>
+                      <td>
+                        <div className="ip-badge">
+                          <span>🌐 {v.unique_ips} Unique IPs</span>
+                        </div>
+                      </td>
+                      <td className="date-badge">{v.last_viewed_at}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: TOP IP ADDRESSES */}
+        {activeTab === 'ips' && (
+          <div className="admin-card-section">
+            <div className="admin-card-header">
+              <h3 className="admin-card-title">🌐 Top Viewer IP Addresses</h3>
+            </div>
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>User IP Address</th>
+                    <th>Total Views From IP</th>
+                    <th>Distinct Videos Watched</th>
+                    <th>First Seen (Timestamp)</th>
+                    <th>Last Seen (Timestamp)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats && stats.top_ips.length > 0 ? (
+                    stats.top_ips.map((ip) => (
+                      <tr key={ip.ip_address}>
+                        <td>
+                          <div className="ip-badge">
+                            <span>🌐 {ip.ip_address}</span>
+                            <button
+                              onClick={() => copyToClipboard(ip.ip_address)}
+                              className="ip-copy-btn"
+                              title="Copy IP"
+                            >
+                              📋
+                            </button>
+                          </div>
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--hub-orange)' }}>
+                          {ip.total_views.toLocaleString()} views
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>{ip.unique_videos} videos</td>
+                        <td className="date-badge">🕒 {ip.first_seen}</td>
+                        <td className="date-badge">🕒 {ip.last_seen}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                        No IP activity recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* CREATE ADMIN MODAL (Saves directly to MySQL database, not hardcoded, not in .env) */}
+      {isAddAdminOpen && (
+        <div className="modal-overlay" style={{ display: 'flex' }}>
+          <div className="video-modal-dialog" style={{ maxWidth: '520px' }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="modal-brand">
+                <span className="logo-text">Check</span>
+                <span className="hub-pill">Hub</span>
+                <span className="modal-title-pill">REGISTER ADMIN (MYSQL DB)</span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsAddAdminOpen(false);
+                  setAdminMsg(null);
+                }}
+                className="action-btn"
+                style={{ background: 'rgba(255, 255, 255, 0.1)', cursor: 'pointer' }}
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <div style={{ padding: '2rem 1.5rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+                New administrator credentials are encrypted with bcrypt and stored in the <code>users</code> table of the MySQL database.
+              </p>
+
+              {adminMsg && (
+                <div className={`admin-alert-box ${adminMsg.isError ? 'admin-alert-error' : 'admin-alert-success'}`}>
+                  {adminMsg.text}
+                </div>
+              )}
+
+              <form onSubmit={handleCreateAdminSubmit}>
+                <div className="admin-form-group">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    className="admin-form-input"
+                    placeholder="e.g. Clinical IT Director"
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label>Admin Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    className="admin-form-input"
+                    placeholder="e.g. it-admin@checkhub.org"
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label>Password (Minimum 6 Characters)</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="admin-form-input"
+                    placeholder="••••••••••••"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={creatingAdmin}
+                  className="admin-btn admin-btn-primary admin-btn-block"
+                  style={{ marginTop: '1.5rem' }}
+                >
+                  {creatingAdmin ? 'Saving into MySQL Database...' : '+ Save Administrator to Database'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
