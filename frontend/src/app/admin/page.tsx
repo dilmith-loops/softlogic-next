@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
         email: adminEmail,
         password: adminPassword,
       });
-      setAdminMsg({ text: `✓ Administrator [${adminEmail}] successfully created in MySQL database!`, isError: false });
+      setAdminMsg({ text: `✓ Administrator [${adminEmail}] successfully created!`, isError: false });
       setAdminName('');
       setAdminEmail('');
       setAdminPassword('');
@@ -209,10 +209,7 @@ export default function AdminDashboardPage() {
             </div>
             <span className="admin-tag">ADMIN PORTAL</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#10b981' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-            <span>MySQL: checkhub_db connected</span>
-          </div>
+
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
@@ -245,9 +242,7 @@ export default function AdminDashboardPage() {
         <div className="admin-header-row">
           <div className="admin-title-area">
             <h1>Video Views, Exam Starts &amp; User IP Analytics</h1>
-            <p>
-              100% real recorded events in Sri Lanka Standard Time (Asia/Colombo UTC+05:30). View logging triggers only when a video is played.
-            </p>
+
           </div>
 
           <div className="admin-header-actions">
@@ -261,7 +256,7 @@ export default function AdminDashboardPage() {
               🩺 Export Exam CSV
             </button>
             <button onClick={() => setIsAddAdminOpen(true)} className="admin-btn admin-btn-primary">
-              + Add Admin (DB)
+              + Add Admin
             </button>
           </div>
         </div>
@@ -283,7 +278,7 @@ export default function AdminDashboardPage() {
             <div className="metric-value">
               {stats ? stats.overview.real_views_recorded.toLocaleString() : '0'}
             </div>
-            <div className="metric-sub">Logged in MySQL &apos;video_views&apos; table</div>
+            <div className="metric-sub">Total verified video views</div>
           </div>
 
           <div className="admin-metric-card accent-pink">
@@ -330,7 +325,7 @@ export default function AdminDashboardPage() {
             <div className="metric-value">
               {stats ? stats.overview.total_videos : '12'}
             </div>
-            <div className="metric-sub">Awareness guides tracked in DB</div>
+            <div className="metric-sub">Active awareness guides</div>
           </div>
         </div>
 
@@ -449,7 +444,7 @@ export default function AdminDashboardPage() {
                 <h3 className="admin-card-title">
                   <span>📋 Real-Time View Stream (Logged only upon video play)</span>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                    ({viewsData?.pagination.total || 0} total records recorded in MySQL)
+                    ({viewsData?.pagination.total || 0} total view logs)
                   </span>
                 </h3>
               </div>
@@ -469,7 +464,7 @@ export default function AdminDashboardPage() {
                     {loading ? (
                       <tr>
                         <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                          Loading records from MySQL...
+                          Loading records...
                         </td>
                       </tr>
                     ) : viewsData && viewsData.data.length > 0 ? (
@@ -561,7 +556,7 @@ export default function AdminDashboardPage() {
                     <th>Video ID</th>
                     <th>Video Title</th>
                     <th>Category</th>
-                    <th>Real Recorded Views (DB)</th>
+                    <th>Real Recorded Views</th>
                     <th>Unique IP Addresses</th>
                     <th>Last Viewed Timestamp (SLST)</th>
                   </tr>
@@ -678,7 +673,7 @@ export default function AdminDashboardPage() {
                   {loading ? (
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                        Loading exam start records from MySQL...
+                        Loading exam records...
                       </td>
                     </tr>
                   ) : examStartsData && examStartsData.data.length > 0 ? (
@@ -759,33 +754,100 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* CREATE ADMIN MODAL (Saves directly to MySQL database, not hardcoded, not in .env) */}
+      {/* CREATE ADMIN MODAL */}
       {isAddAdminOpen && (
-        <div className="modal-overlay" style={{ display: 'flex' }}>
-          <div className="video-modal-dialog" style={{ maxWidth: '520px' }}>
-            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="modal-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div className="site-logo-badge" style={{ fontSize: '1.4rem' }}>
+        <div
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsAddAdminOpen(false);
+              setAdminMsg(null);
+            }
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              background: '#131318',
+              border: '1px solid rgba(255, 144, 0, 0.35)',
+              borderRadius: '14px',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 144, 0, 0.15)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div className="site-logo-badge" style={{ fontSize: '1.2rem' }}>
                   <span className="logo-text">Check</span>
                   <span className="hub-pill">Hub</span>
                 </div>
-                <span className="modal-title-pill">REGISTER ADMIN (MYSQL DB)</span>
+                <span
+                  style={{
+                    background: 'rgba(255, 144, 0, 0.15)',
+                    color: 'var(--hub-orange)',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    padding: '0.25rem 0.6rem',
+                    borderRadius: '4px',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  NEW ADMINISTRATOR
+                </span>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setIsAddAdminOpen(false);
                   setAdminMsg(null);
                 }}
-                className="action-btn"
-                style={{ background: 'rgba(255, 255, 255, 0.1)', cursor: 'pointer' }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  transition: 'background 0.2s',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)')}
+                onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
               >
-                ✕ Close
+                ✕
               </button>
             </div>
 
-            <div style={{ padding: '2rem 1.5rem' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-                New administrator credentials are encrypted with bcrypt and stored in the <code>users</code> table of the MySQL database.
+            {/* Modal Body */}
+            <div style={{ padding: '1.75rem 1.5rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.35rem', lineHeight: 1.5 }}>
+                Create a new administrator account with portal access.
               </p>
 
               {adminMsg && (
@@ -799,8 +861,18 @@ export default function AdminDashboardPage() {
               )}
 
               <form onSubmit={handleCreateAdminSubmit}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                <div style={{ marginBottom: '1.15rem' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      marginBottom: '0.45rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
                     Full Name
                   </label>
                   <input
@@ -809,12 +881,33 @@ export default function AdminDashboardPage() {
                     value={adminName}
                     onChange={(e) => setAdminName(e.target.value)}
                     placeholder="e.g. Dilmith Jayasuriya"
-                    className="admin-login-input"
+                    className="admin-form-input"
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'rgba(22, 22, 30, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      color: '#ffffff',
+                      fontSize: '0.92rem',
+                      outline: 'none',
+                    }}
                   />
                 </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                <div style={{ marginBottom: '1.15rem' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      marginBottom: '0.45rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
                     Email Address
                   </label>
                   <input
@@ -822,13 +915,34 @@ export default function AdminDashboardPage() {
                     required
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="e.g. dilmith@softlogic.lk"
-                    className="admin-login-input"
+                    placeholder="e.g. admin@softlogic.lk"
+                    className="admin-form-input"
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'rgba(22, 22, 30, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      color: '#ffffff',
+                      fontSize: '0.92rem',
+                      outline: 'none',
+                    }}
                   />
                 </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      marginBottom: '0.45rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
                     Password
                   </label>
                   <input
@@ -837,7 +951,18 @@ export default function AdminDashboardPage() {
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="admin-login-input"
+                    className="admin-form-input"
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'rgba(22, 22, 30, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      color: '#ffffff',
+                      fontSize: '0.92rem',
+                      outline: 'none',
+                    }}
                   />
                 </div>
 
@@ -845,9 +970,21 @@ export default function AdminDashboardPage() {
                   type="submit"
                   disabled={creatingAdmin}
                   className="btn-subscribe"
-                  style={{ width: '100%', padding: '0.8rem', fontSize: '0.9rem', cursor: creatingAdmin ? 'not-allowed' : 'pointer' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    padding: '0.85rem',
+                    fontSize: '0.92rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: creatingAdmin ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 20px rgba(255, 144, 0, 0.35)',
+                  }}
                 >
-                  {creatingAdmin ? 'Saving to MySQL...' : 'Create Admin in Database'}
+                  {creatingAdmin ? 'Creating Account...' : 'Create Administrator Account'}
                 </button>
               </form>
             </div>
