@@ -2999,7 +2999,25 @@ body.glitching-screen {
   margin-top: 0.15rem;
 }
 
+/* Responsive Exam Action Card: Desktop vs Mobile Placement */
+.exam-action-card-mobile {
+  display: none;
+}
+
+.exam-action-card-desktop {
+  display: block;
+}
+
 @media (max-width: 1024px) {
+  .exam-action-card-mobile {
+    display: block;
+    margin-bottom: 1.25rem;
+  }
+
+  .exam-action-card-desktop {
+    display: none !important;
+  }
+
   .watch-layout {
     flex-direction: column;
     align-items: stretch;

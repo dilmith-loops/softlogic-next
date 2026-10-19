@@ -241,6 +241,98 @@ export default function HomePage() {
     { label: 'Healthy Driven PSA', src: '/healthy_driven_breast_cancer.mp4', icon: '🎗️' },
   ];
 
+  // Render Examination Action Card with consent checkbox
+  const renderExamCard = (isMobile: boolean = false) => (
+    <div
+      className={isMobile ? "exam-action-card-mobile" : "exam-action-card-desktop"}
+      style={{
+        background: "rgba(255, 144, 0, 0.08)",
+        border: "1px solid rgba(255, 144, 0, 0.3)",
+        borderRadius: "8px",
+        padding: "1rem",
+        marginBottom: "1.25rem",
+      }}
+    >
+      <Link
+        href="/exam"
+        className="btn-subscribe btn-exam"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "0.45rem",
+          width: "100%",
+          textAlign: "center",
+          padding: "0.85rem 1rem",
+          fontSize: "0.92rem",
+          fontWeight: 800,
+          textDecoration: "none",
+          opacity: examConsent ? 1 : 0.65,
+          cursor: examConsent ? "pointer" : "not-allowed",
+          transition: "all 0.2s ease",
+          boxShadow: examConsent ? "0 0 20px rgba(255, 144, 0, 0.4)" : "none",
+        }}
+        onClick={(e) => {
+          if (!examConsent) {
+            e.preventDefault();
+            setConsentError(true);
+            return;
+          }
+          if (videoPlayerRef.current) {
+            videoPlayerRef.current.pause();
+          }
+          try {
+            localStorage.setItem("checkhub_in_exam", "true");
+          } catch {}
+        }}
+      >
+        🩺 Take 3-Minute Breast Examination
+      </Link>
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "0.55rem",
+          marginTop: "0.75rem",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={examConsent}
+          onChange={(e) => {
+            setExamConsent(e.target.checked);
+            if (e.target.checked) setConsentError(false);
+          }}
+          style={{
+            accentColor: "var(--hub-orange)",
+            width: "15px",
+            height: "15px",
+            marginTop: "2px",
+            cursor: "pointer",
+          }}
+        />
+        <span
+          style={{
+            fontSize: "0.78rem",
+            lineHeight: 1.4,
+            color: consentError ? "#fca5a5" : "var(--text-secondary)",
+          }}
+        >
+          I understand the importance of raising awareness about breast cancer and women’s health, and I commit to sharing this important message with my loved ones.
+        </span>
+      </label>
+
+      {consentError && (
+        <div style={{ fontSize: "0.74rem", color: "#ef4444", marginTop: "0.35rem" }}>
+          * Please check the consent box to proceed to the examination.
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div
       className={`dark-theme ${!hasEntered && !isGlitching ? 'age-gate-active' : ''}`}
@@ -425,6 +517,9 @@ export default function HomePage() {
 
                 {/* Video Details */}
                 <div className="modal-body">
+                  {/* Mobile View: Examination Card placed under video player, above video title */}
+                  {renderExamCard(true)}
+
                   <div className="video-info-primary">
                     <h2 id="modalVideoTitle" className="video-main-title">
                       {selectedVideo.title}
@@ -550,94 +645,8 @@ export default function HomePage() {
 
               {/* Recommended Checks Sidebar (Allows switching to any other video) */}
               <div className="watch-sidebar">
-                {/* 3-Minute Breast Examination Action Card above RECOMMENDED CHECKS */}
-                <div
-                  style={{
-                    background: "rgba(255, 144, 0, 0.08)",
-                    border: "1px solid rgba(255, 144, 0, 0.3)",
-                    borderRadius: "8px",
-                    padding: "1rem",
-                    marginBottom: "1.25rem",
-                  }}
-                >
-                  <Link
-                    href="/exam"
-                    className="btn-subscribe btn-exam"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.45rem",
-                      width: "100%",
-                      textAlign: "center",
-                      padding: "0.85rem 1rem",
-                      fontSize: "0.92rem",
-                      fontWeight: 800,
-                      textDecoration: "none",
-                      opacity: examConsent ? 1 : 0.65,
-                      cursor: examConsent ? "pointer" : "not-allowed",
-                      transition: "all 0.2s ease",
-                      boxShadow: examConsent ? "0 0 20px rgba(255, 144, 0, 0.4)" : "none",
-                    }}
-                    onClick={(e) => {
-                      if (!examConsent) {
-                        e.preventDefault();
-                        setConsentError(true);
-                        return;
-                      }
-                      if (videoPlayerRef.current) {
-                        videoPlayerRef.current.pause();
-                      }
-                      try {
-                        localStorage.setItem("checkhub_in_exam", "true");
-                      } catch {}
-                    }}
-                  >
-                    🩺 Take 3-Minute Breast Examination
-                  </Link>
-
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "0.55rem",
-                      marginTop: "0.75rem",
-                      cursor: "pointer",
-                      userSelect: "none",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={examConsent}
-                      onChange={(e) => {
-                        setExamConsent(e.target.checked);
-                        if (e.target.checked) setConsentError(false);
-                      }}
-                      style={{
-                        accentColor: "var(--hub-orange)",
-                        width: "15px",
-                        height: "15px",
-                        marginTop: "2px",
-                        cursor: "pointer",
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: "0.78rem",
-                        lineHeight: 1.4,
-                        color: consentError ? "#fca5a5" : "var(--text-secondary)",
-                      }}
-                    >
-                      I understand the importance of raising awareness about breast cancer and women’s health, and I commit to sharing this important message with my loved ones.
-                    </span>
-                  </label>
-
-                  {consentError && (
-                    <div style={{ fontSize: "0.74rem", color: "#ef4444", marginTop: "0.35rem" }}>
-                      * Please check the consent box to proceed to the examination.
-                    </div>
-                  )}
-                </div>
+                {/* Desktop View: Examination Action Card above RECOMMENDED CHECKS */}
+                {renderExamCard(false)}
 
                 <h3 className="sidebar-heading">RECOMMENDED CHECKS</h3>
                 <div className="related-videos-list">
