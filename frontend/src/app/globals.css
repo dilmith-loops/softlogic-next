@@ -98,6 +98,16 @@ button {
   pointer-events: none;
 }
 
+/* Completely hide Age Gate modal & card when cyber glitch animation is active */
+body.glitching-screen #ageGateModal,
+body.glitching-screen .age-gate-overlay,
+body.glitching-screen .age-gate-card {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Background Page Blur when Age Gate is Active (Soft, subtle adult-site blur) */
 body.age-gate-active .hub-header,
 body.age-gate-active .main-container,

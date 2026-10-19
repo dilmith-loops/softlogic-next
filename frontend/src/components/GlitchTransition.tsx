@@ -127,7 +127,7 @@ export const GlitchTransition: React.FC<GlitchTransitionProps> = ({ active }) =>
   if (!active) return null;
 
   return (
-    <div className="glitch-overlay active" style={{ display: 'block', zIndex: 99999 }}>
+    <div className="glitch-overlay active" style={{ display: 'block', zIndex: 999999 }}>
       <canvas ref={canvasRef} className="pixel-glitch-canvas" />
       <div className="glitch-pixel-matrix" />
       <div className="glitch-scanlines" />

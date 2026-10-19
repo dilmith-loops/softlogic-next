@@ -243,7 +243,7 @@ export default function HomePage() {
 
   return (
     <div
-      className={`dark-theme ${!hasEntered ? 'age-gate-active' : ''}`}
+      className={`dark-theme ${!hasEntered && !isGlitching ? 'age-gate-active' : ''}`}
       style={{
         minHeight: '100vh',
         background: 'radial-gradient(ellipse at top, #1a1206 0%, #000 60%)',
@@ -259,7 +259,7 @@ export default function HomePage() {
         <>
           {/* Age Gate Modal Overlay */}
           <AgeGateModal
-            isOpen={true}
+            isOpen={!isGlitching && !hasEntered}
             onEnter={handleEnterFromAgeGate}
             onExit={handleEnterFromAgeGate}
           />
