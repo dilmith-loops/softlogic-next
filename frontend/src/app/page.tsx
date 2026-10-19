@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { GlitchTransition } from '@/components/GlitchTransition';
 import { AgeGateModal } from '@/components/AgeGateModal';
+import { Header } from '@/components/Header';
+import { SubNav } from '@/components/SubNav';
 import { SelfCheckModal } from '@/components/SelfCheckModal';
 import { ReminderModal } from '@/components/ReminderModal';
 import { ShareModal } from '@/components/ShareModal';
@@ -19,12 +21,17 @@ export default function HomePage() {
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [likes, setLikes] = useState<number>(124000);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
-  const [isGlitching, setIsGlitching] = useState(false);
-  const [isAgeGateActive, setIsAgeGateActive] = useState(false);
+
+  // Flow State: false = Show Root Age Gate with blurred backdrop; true = Video Player Page
+  const [hasEntered, setHasEntered] = useState<boolean>(false);
+  const [isGlitching, setIsGlitching] = useState<boolean>(false);
+
+  // Modals
   const [isSelfCheckOpen, setIsSelfCheckOpen] = useState(false);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
+  // Comments
   const [comments, setComments] = useState<Array<{ name: string; time: string; text: string; likes: number }>>([
     {
       name: 'Sarah M. (Breast Cancer Survivor)',
@@ -42,16 +49,15 @@ export default function HomePage() {
   const [newComment, setNewComment] = useState('');
   const videoPlayerRef = useRef<HTMLVideoElement | null>(null);
 
-  // Restore saved video from URL query or sessionStorage on mount, and check age gate
+  // Check session persistence on mount
   useEffect(() => {
-    // Check Age Gate
     if (typeof window !== 'undefined') {
-      const verified = sessionStorage.getItem('checkhub_age_verified');
-      if (!verified) {
-        setIsAgeGateActive(true);
+      const enteredSession = sessionStorage.getItem('checkhub_has_entered');
+      if (enteredSession === 'true') {
+        setHasEntered(true);
       }
 
-      // Check URL search param or sessionStorage for currently playing video
+      // Restore specific video if query param or storage exists
       const urlParams = new URLSearchParams(window.location.search);
       const videoQueryId = urlParams.get('v') || sessionStorage.getItem('checkhub_current_video');
       if (videoQueryId) {
@@ -62,28 +68,26 @@ export default function HomePage() {
       }
     }
 
-    // Fetch live updated dynamic views from MySQL API
+    // Load live updated counts from MySQL API
     async function loadVideos() {
       const liveList = await getVideos();
       if (liveList && liveList.length > 0) {
         setVideos(liveList);
-        // Sync selected video metadata if changed in DB
         setSelectedVideo((prev) => liveList.find((v) => v.id === prev.id) || prev);
       }
     }
     loadVideos();
   }, []);
 
-  // When selectedVideo changes: update stream, record view with IP in MySQL, and update persistence
+  // When selectedVideo changes on the watch page: update source, record IP in MySQL, and persist
   useEffect(() => {
-    if (!selectedVideo) return;
+    if (!hasEntered || !selectedVideo) return;
 
     const initialSrc = selectedVideo.videoSrc.startsWith('/')
       ? selectedVideo.videoSrc
       : `/${selectedVideo.videoSrc}`;
     setActiveSrc(initialSrc);
 
-    // Persist to sessionStorage & URL query so refresh ALWAYS stays on this video
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('checkhub_current_video', selectedVideo.id);
       const url = new URL(window.location.href);
@@ -91,7 +95,7 @@ export default function HomePage() {
       window.history.replaceState(null, '', url.toString());
     }
 
-    // Log view & user IP in MySQL database
+    // Record user IP address and view event in MySQL
     recordView(selectedVideo.id, selectedVideo.title, initialSrc)
       .then((res) => {
         if (res && res.success) {
@@ -110,30 +114,28 @@ export default function HomePage() {
         }
       });
     }
-  }, [selectedVideo]);
+  }, [selectedVideo, hasEntered]);
 
+  // Glitch transition trigger
   const triggerGlitch = (callback: () => void) => {
     setIsGlitching(true);
+    // Switch state at midpoint of glitch breakdown
     setTimeout(() => {
       callback();
-      setTimeout(() => {
-        setIsGlitching(false);
-      }, 400);
-    }, 350);
+    }, 1100);
+
+    // End glitch overlay and screen shake
+    setTimeout(() => {
+      setIsGlitching(false);
+    }, 1750);
   };
 
-  const handleAgeGateEnter = () => {
-    sessionStorage.setItem('checkhub_age_verified', 'true');
+  // Called when user clicks EITHER button on the Age Gate
+  const handleEnterFromAgeGate = () => {
     triggerGlitch(() => {
-      setIsAgeGateActive(false);
-    });
-  };
-
-  const handleAgeGateExit = () => {
-    sessionStorage.setItem('checkhub_age_verified', 'true');
-    triggerGlitch(() => {
-      setIsAgeGateActive(false);
-      setIsSelfCheckOpen(true);
+      sessionStorage.setItem('checkhub_has_entered', 'true');
+      sessionStorage.setItem('checkhub_age_verified', 'true');
+      setHasEntered(true);
     });
   };
 
@@ -196,290 +198,356 @@ export default function HomePage() {
 
   return (
     <div
-      className={`dark-theme ${isAgeGateActive ? 'age-gate-active' : ''}`}
+      className={`dark-theme ${!hasEntered ? 'age-gate-active' : ''}`}
       style={{
         minHeight: '100vh',
         background: 'radial-gradient(ellipse at top, #1a1206 0%, #000 60%)',
-        padding: '1.25rem 1rem 3rem',
       }}
     >
-      {/* Glitch Overlay */}
+      {/* Heavy Cyber Glitch Overlay */}
       <GlitchTransition active={isGlitching} />
 
-      {/* Age Gate Modal (shows only on first visit before verification) */}
-      <AgeGateModal
-        isOpen={isAgeGateActive}
-        onEnter={handleAgeGateEnter}
-        onExit={handleAgeGateExit}
-      />
+      {/* =========================================================================
+          VIEW A: ROOT AGE GATE WITH BLURRED BACKDROP (Shown on root before click)
+          ========================================================================= */}
+      {!hasEntered ? (
+        <>
+          {/* Age Gate Modal Overlay */}
+          <AgeGateModal
+            isOpen={true}
+            onEnter={handleEnterFromAgeGate}
+            onExit={handleEnterFromAgeGate}
+          />
 
-      {/* Permanent Dedicated Watch Card (No video grid on page or on refresh) */}
-      <div
-        className="video-modal-dialog"
-        style={{
-          margin: '0 auto',
-          maxWidth: '1440px',
-          width: '100%',
-          maxHeight: 'none',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 144, 0, 0.2)',
-        }}
-      >
-        {/* Header Bar with Brand & Actions (NO close button) */}
-        <div
-          className="modal-header"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '1rem 1.5rem',
-            borderBottom: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div className="modal-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <span className="logo-text">Check</span>
-              <span className="hub-pill">Hub</span>
-            </Link>
-            <span className="modal-title-pill">NOW PLAYING: AWARENESS SPECIAL</span>
-          </div>
-
-          {/* Quick Action Navigation Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setIsSelfCheckOpen(true)}
-              className="action-btn highlight"
-              style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
-            >
-              <span className="btn-icon">🩺</span>
-              <span>Self-Check</span>
-            </button>
-            <button
-              onClick={() => setIsReminderOpen(true)}
-              className="action-btn reminder-btn"
-              style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
-            >
-              <span className="btn-icon">📅</span>
-              <span>Reminder</span>
-            </button>
-            <button
-              onClick={() => setIsShareOpen(true)}
-              className="action-btn share-btn"
-              style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
-            >
-              <span className="btn-icon">📢</span>
-              <span>Share</span>
-            </button>
-            <Link
-              href="/admin"
-              className="action-btn"
-              style={{
-                background: 'rgba(255, 144, 0, 0.12)',
-                border: '1px solid rgba(255, 144, 0, 0.35)',
-                color: 'var(--hub-orange)',
-                padding: '0.45rem 0.85rem',
-                fontSize: '0.85rem',
-                textDecoration: 'none',
-              }}
-            >
-              <span className="btn-icon">🔐</span>
-              <span>Admin</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Watch Page Content Layout */}
-        <div className="watch-layout">
-          {/* Main Column */}
-          <div className="watch-main">
-            {/* HTML5 Video Player Container */}
-            <div className="player-wrapper">
-              <video
-                ref={videoPlayerRef}
-                id="html5VideoPlayer"
-                className="video-element"
-                src={activeSrc}
-                controls
-                playsInline
-                loop
-                preload="metadata"
-              >
-                Your browser does not support HTML5 video.
-              </video>
+          {/* Blurred Background Mock (matches screenshot behind the modal) */}
+          <Header
+            onSearch={() => {}}
+            onOpenSelfCheck={() => {}}
+            onOpenReminder={() => {}}
+            onOpenShare={() => {}}
+          />
+          <SubNav
+            activeCategory="all"
+            onSelectCategory={() => {}}
+            totalCount={videos.length}
+          />
+          <main className="main-container">
+            <div className="content-toolbar">
+              <div className="toolbar-left">
+                <h2 className="section-heading">Trending Breast Health Videos</h2>
+                <span className="video-counter">Showing {videos.length} videos</span>
+              </div>
             </div>
-
-            {/* Awareness Stream Channel Switcher */}
-            <div className="awareness-video-switcher">
-              <span className="switcher-label">📺 Awareness Stream:</span>
-              {streams.map((s) => (
-                <button
-                  key={s.src}
-                  className={`btn-stream-switch ${activeSrc === s.src ? 'active' : ''}`}
-                  onClick={() => handleStreamSwitch(s.src)}
-                >
-                  {s.icon} {s.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Video Details */}
-            <div className="modal-body">
-              <div className="video-info-primary">
-                <h2 id="modalVideoTitle" className="video-main-title">
-                  {selectedVideo.title}
-                </h2>
-
-                <div className="video-stats-bar">
-                  <div className="stats-left">
-                    <span className="views-count">
-                      👁️ {recordedData ? recordedData.total_views.toLocaleString() : selectedVideo.views} views
-                    </span>
-                    <span className="date-posted">Published: {selectedVideo.date}</span>
-                    <span className="verified-tag">✓ Medically Reviewed</span>
-                  </div>
-                  <div className="stats-right">
-                    <button
-                      className="interaction-btn like-btn"
-                      onClick={() => {
-                        setLikes(hasLiked ? likes - 1 : likes + 1);
-                        setHasLiked(!hasLiked);
-                      }}
-                      style={{ color: hasLiked ? 'var(--hub-orange)' : undefined }}
-                    >
-                      👍 <span>{Math.floor(likes / 1000)}K</span>
-                    </button>
-                    <button className="interaction-btn dislike-btn">
-                      👎 <span>42</span>
-                    </button>
-                    <button className="interaction-btn share-btn-modal" onClick={() => setIsShareOpen(true)}>
-                      🔗 Share PSA
-                    </button>
-                    <button className="interaction-btn save-btn">
-                      ⭐ Save Guide
-                    </button>
-                  </div>
-                </div>
-
-                {/* Uploader Profile */}
-                <div className="uploader-profile">
-                  <div className="uploader-avatar">🩺</div>
-                  <div className="uploader-details">
-                    <div className="uploader-name">
-                      <span>{selectedVideo.author} - {selectedVideo.authorTitle}</span>
-                      <span className="channel-verified">✓</span>
+            <div className="video-grid">
+              {videos.map((video, index) => {
+                const thumbIndex = (index % 10) + 1;
+                return (
+                  <div key={video.id} className="video-card">
+                    <div className="thumbnail-wrapper">
+                      <img
+                        src={`/images/thumb_${thumbIndex}.jpg`}
+                        alt={video.title}
+                        loading="lazy"
+                        className="video-thumb-img"
+                      />
+                      <span className="duration-badge">{video.duration}</span>
+                      {video.badge && <span className="video-badge-pill">{video.badge}</span>}
                     </div>
-                    <div className="uploader-subs">1.4M Medical Awareness Subscribers</div>
-                  </div>
-                  <Link href="/exam" className="btn-subscribe btn-exam">
-                    🩺 Take 3-Minute Breast Examination
-                  </Link>
-                </div>
-
-                {/* Video Description & Key Points */}
-                <div className="video-description-box">
-                  <p className="modal-desc-text">{selectedVideo.description}</p>
-                  <div className="key-points-box">
-                    <h4>🎯 What To Look For During This Check:</h4>
-                    <ul>
-                      {selectedVideo.keyPoints &&
-                        selectedVideo.keyPoints.map((pt, idx) => <li key={idx}>{pt}</li>)}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Quick Action CTA Buttons */}
-                <div className="modal-cta-buttons">
-                  <button className="btn-cta-pink" onClick={() => setIsReminderOpen(true)}>
-                    📅 Set Monthly Calendar Reminder
-                  </button>
-                  <button className="btn-cta-outline" onClick={() => setIsShareOpen(true)}>
-                    📢 Prank A Friend To Save Their Life
-                  </button>
-                  <a
-                    href="https://www.nationalbreastcancer.org/breast-self-exam"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-cta-outline"
-                  >
-                    🌐 Visit National Breast Cancer Org ↗
-                  </a>
-                </div>
-
-                {/* Interactive Comments Section */}
-                <div className="modal-comments-section">
-                  <div className="comments-header">
-                    <h3>Community Discussion ({comments.length + 140} Comments)</h3>
-                    <span className="comment-sort">Top Comments</span>
-                  </div>
-
-                  <form onSubmit={handleAddComment} className="add-comment-row">
-                    <div className="comment-user-avatar">👤</div>
-                    <input
-                      type="text"
-                      placeholder="Add a public comment or survivor message..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      required
-                    />
-                    <button type="submit" className="btn-comment-submit">
-                      COMMENT
-                    </button>
-                  </form>
-
-                  <div className="comments-list">
-                    {comments.map((c, i) => (
-                      <div key={i} className="comment-item">
-                        <div className="comment-avatar">🩺</div>
-                        <div className="comment-content">
-                          <div className="comment-author-row">
-                            <span className="comment-author-name">{c.name}</span>
-                            <span className="comment-time">{c.time}</span>
-                          </div>
-                          <div className="comment-body-text">{c.text}</div>
-                          <div className="comment-actions">
-                            <button className="comment-like-btn">👍 {c.likes}</button>
-                            <button className="comment-reply-btn">Reply</button>
-                          </div>
+                    <div className="video-card-body">
+                      <div className="card-avatar-col">
+                        <div className="channel-avatar">{video.icon || '🩺'}</div>
+                      </div>
+                      <div className="card-info-col">
+                        <h3 className="card-title">{video.title}</h3>
+                        <div className="card-author">
+                          <span>{video.author}</span>
+                        </div>
+                        <div className="card-meta-row">
+                          <span className="card-views">👁️ {video.views}</span>
+                          <span className="meta-separator">•</span>
+                          <span className="card-rating">👍 {video.rating}%</span>
                         </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          </main>
+        </>
+      ) : (
+        /* =========================================================================
+           VIEW B: DEDICATED VIDEO PLAYER PAGE (Revealed after glitch, NO close button)
+           ========================================================================= */
+        <div style={{ padding: '1.25rem 1rem 3rem' }}>
+          <div
+            className="video-modal-dialog"
+            style={{
+              margin: '0 auto',
+              maxWidth: '1440px',
+              width: '100%',
+              maxHeight: 'none',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 144, 0, 0.2)',
+            }}
+          >
+            {/* Header Bar with Brand & Actions (NO close button) */}
+            <div
+              className="modal-header"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.5rem',
+                borderBottom: '1px solid var(--border-subtle)',
+              }}
+            >
+              <div className="modal-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Link href="/" style={{ textDecoration: 'none' }}>
+                  <span className="logo-text">Check</span>
+                  <span className="hub-pill">Hub</span>
+                </Link>
+                <span className="modal-title-pill">NOW PLAYING: AWARENESS SPECIAL</span>
+              </div>
+
+              {/* Header Action Buttons (NO Close Button) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setIsSelfCheckOpen(true)}
+                  className="action-btn highlight"
+                  style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
+                >
+                  <span className="btn-icon">🩺</span>
+                  <span>Self-Check</span>
+                </button>
+                <button
+                  onClick={() => setIsReminderOpen(true)}
+                  className="action-btn reminder-btn"
+                  style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
+                >
+                  <span className="btn-icon">📅</span>
+                  <span>Reminder</span>
+                </button>
+                <button
+                  onClick={() => setIsShareOpen(true)}
+                  className="action-btn share-btn"
+                  style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
+                >
+                  <span className="btn-icon">📢</span>
+                  <span>Share</span>
+                </button>
+                <Link
+                  href="/admin"
+                  className="action-btn"
+                  style={{
+                    background: 'rgba(255, 144, 0, 0.12)',
+                    border: '1px solid rgba(255, 144, 0, 0.35)',
+                    color: 'var(--hub-orange)',
+                    padding: '0.45rem 0.85rem',
+                    fontSize: '0.85rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span className="btn-icon">🔐</span>
+                  <span>Admin</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Watch Page Content Layout */}
+            <div className="watch-layout">
+              {/* Main Column */}
+              <div className="watch-main">
+                {/* HTML5 Video Player Container */}
+                <div className="player-wrapper">
+                  <video
+                    ref={videoPlayerRef}
+                    id="html5VideoPlayer"
+                    className="video-element"
+                    src={activeSrc}
+                    controls
+                    playsInline
+                    loop
+                    preload="metadata"
+                  >
+                    Your browser does not support HTML5 video.
+                  </video>
+                </div>
+
+                {/* Awareness Stream Channel Switcher */}
+                <div className="awareness-video-switcher">
+                  <span className="switcher-label">📺 Awareness Stream:</span>
+                  {streams.map((s) => (
+                    <button
+                      key={s.src}
+                      className={`btn-stream-switch ${activeSrc === s.src ? 'active' : ''}`}
+                      onClick={() => handleStreamSwitch(s.src)}
+                    >
+                      {s.icon} {s.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Video Details */}
+                <div className="modal-body">
+                  <div className="video-info-primary">
+                    <h2 id="modalVideoTitle" className="video-main-title">
+                      {selectedVideo.title}
+                    </h2>
+
+                    <div className="video-stats-bar">
+                      <div className="stats-left">
+                        <span className="views-count">
+                          👁️ {recordedData ? recordedData.total_views.toLocaleString() : selectedVideo.views} views
+                        </span>
+                        <span className="date-posted">Published: {selectedVideo.date}</span>
+                        <span className="verified-tag">✓ Medically Reviewed</span>
+                      </div>
+                      <div className="stats-right">
+                        <button
+                          className="interaction-btn like-btn"
+                          onClick={() => {
+                            setLikes(hasLiked ? likes - 1 : likes + 1);
+                            setHasLiked(!hasLiked);
+                          }}
+                          style={{ color: hasLiked ? 'var(--hub-orange)' : undefined }}
+                        >
+                          👍 <span>{Math.floor(likes / 1000)}K</span>
+                        </button>
+                        <button className="interaction-btn dislike-btn">
+                          👎 <span>42</span>
+                        </button>
+                        <button className="interaction-btn share-btn-modal" onClick={() => setIsShareOpen(true)}>
+                          🔗 Share PSA
+                        </button>
+                        <button className="interaction-btn save-btn">
+                          ⭐ Save Guide
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Uploader Profile */}
+                    <div className="uploader-profile">
+                      <div className="uploader-avatar">🩺</div>
+                      <div className="uploader-details">
+                        <div className="uploader-name">
+                          <span>{selectedVideo.author} - {selectedVideo.authorTitle}</span>
+                          <span className="channel-verified">✓</span>
+                        </div>
+                        <div className="uploader-subs">1.4M Medical Awareness Subscribers</div>
+                      </div>
+                      <Link href="/exam" className="btn-subscribe btn-exam">
+                        🩺 Take 3-Minute Breast Examination
+                      </Link>
+                    </div>
+
+                    {/* Video Description & Key Points */}
+                    <div className="video-description-box">
+                      <p className="modal-desc-text">{selectedVideo.description}</p>
+                      <div className="key-points-box">
+                        <h4>🎯 What To Look For During This Check:</h4>
+                        <ul>
+                          {selectedVideo.keyPoints &&
+                            selectedVideo.keyPoints.map((pt, idx) => <li key={idx}>{pt}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Quick Action CTA Buttons */}
+                    <div className="modal-cta-buttons">
+                      <button className="btn-cta-pink" onClick={() => setIsReminderOpen(true)}>
+                        📅 Set Monthly Calendar Reminder
+                      </button>
+                      <button className="btn-cta-outline" onClick={() => setIsShareOpen(true)}>
+                        📢 Prank A Friend To Save Their Life
+                      </button>
+                      <a
+                        href="https://www.nationalbreastcancer.org/breast-self-exam"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-cta-outline"
+                      >
+                        🌐 Visit National Breast Cancer Org ↗
+                      </a>
+                    </div>
+
+                    {/* Interactive Comments Section */}
+                    <div className="modal-comments-section">
+                      <div className="comments-header">
+                        <h3>Community Discussion ({comments.length + 140} Comments)</h3>
+                        <span className="comment-sort">Top Comments</span>
+                      </div>
+
+                      <form onSubmit={handleAddComment} className="add-comment-row">
+                        <div className="comment-user-avatar">👤</div>
+                        <input
+                          type="text"
+                          placeholder="Add a public comment or survivor message..."
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          required
+                        />
+                        <button type="submit" className="btn-comment-submit">
+                          COMMENT
+                        </button>
+                      </form>
+
+                      <div className="comments-list">
+                        {comments.map((c, i) => (
+                          <div key={i} className="comment-item">
+                            <div className="comment-avatar">🩺</div>
+                            <div className="comment-content">
+                              <div className="comment-author-row">
+                                <span className="comment-author-name">{c.name}</span>
+                                <span className="comment-time">{c.time}</span>
+                              </div>
+                              <div className="comment-body-text">{c.text}</div>
+                              <div className="comment-actions">
+                                <button className="comment-like-btn">👍 {c.likes}</button>
+                                <button className="comment-reply-btn">Reply</button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recommended Checks Sidebar (Allows switching to any other video) */}
+              <div className="watch-sidebar">
+                <h3 className="sidebar-heading">RECOMMENDED CHECKS</h3>
+                <div className="related-videos-list">
+                  {related.map((item) => (
+                    <div
+                      key={item.id}
+                      className="related-card"
+                      onClick={() => handleSelectRelated(item.id)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="related-thumb">
+                        <img
+                          src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 10) + 1}.jpg`}
+                          alt={item.title}
+                        />
+                        <span className="duration-badge">{item.duration}</span>
+                      </div>
+                      <div className="related-info">
+                        <div className="related-title">{item.title}</div>
+                        <div className="related-meta">{item.author}</div>
+                        <div className="related-meta">
+                          👁️ {item.views} · 👍 {item.rating}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Recommended Checks Sidebar (Always available to select any other video) */}
-          <div className="watch-sidebar">
-            <h3 className="sidebar-heading">RECOMMENDED CHECKS</h3>
-            <div className="related-videos-list">
-              {related.map((item) => (
-                <div
-                  key={item.id}
-                  className="related-card"
-                  onClick={() => handleSelectRelated(item.id)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="related-thumb">
-                    <img
-                      src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 10) + 1}.jpg`}
-                      alt={item.title}
-                    />
-                    <span className="duration-badge">{item.duration}</span>
-                  </div>
-                  <div className="related-info">
-                    <div className="related-title">{item.title}</div>
-                    <div className="related-meta">{item.author}</div>
-                    <div className="related-meta">
-                      👁️ {item.views} · 👍 {item.rating}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Self-Check Guide Modal */}
       <SelfCheckModal
