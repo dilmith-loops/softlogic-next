@@ -1,32 +1,36 @@
 # ==============================================================================
 # Hostinger (hPanel) Apache / LiteSpeed Configuration for /softlogic
 # ==============================================================================
+Options -Indexes +FollowSymLinks
+DirectoryIndex index.html index.php
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /softlogic/
 
-  # Ensure trailing slash on directory visits (prevents relative link breaks)
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteCond %{REQUEST_URI} !(.*)/$
-  RewriteRule ^(.*)$ /softlogic/$1/ [L,R=301]
+  # 1. Direct route for root directory to index.html (LiteSpeed fix)
+  RewriteRule ^$ index.html [L]
 
-  # Route API requests to api/index.php
+  # 2. Subdirectory page routes
+  RewriteRule ^exam/?$ exam/index.html [L]
+  RewriteRule ^admin/?$ admin/index.html [L]
+  RewriteRule ^admin/login/?$ admin/login/index.html [L]
+
+  # 3. Route API requests to api/index.php
   RewriteRule ^api/(.*)$ api/index.php [L,QSA]
-  RewriteRule ^api$ api/index.php [L,QSA]
+  RewriteRule ^api/?$ api/index.php [L,QSA]
 
-  # Clean URLs with trailing slash (e.g. /softlogic/exam/ -> exam/index.html)
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME}/index.html -f
-  RewriteRule ^(.*)/$ $1/index.html [L]
+  # 4. Serve existing files directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
 
-  # Clean URLs without extension (e.g. /softlogic/exam -> exam/index.html)
+  # 5. Dual-path fallback for images or media
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME}/index.html -f
-  RewriteRule ^(.*)$ $1/index.html [L]
+  RewriteCond %{DOCUMENT_ROOT}/softlogic/images/$1 -f
+  RewriteRule ^([^/]+\.(jpg|jpeg|png|svg|webp|ico))$ images/$1 [L]
 
-  # Fallback to index.html for Next.js SPA client-side routing
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+  # 6. Fallback to index.html for Next.js SPA client-side routing
   RewriteRule ^ index.html [L]
 </IfModule>
 
