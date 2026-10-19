@@ -1,5 +1,7 @@
 'use client';
 
+import { withBase } from '@/lib/basePath';
+
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { GlitchTransition } from '@/components/GlitchTransition';
@@ -17,7 +19,7 @@ export default function HomePage() {
   const [selectedVideo, setSelectedVideo] = useState<VideoItem>(
     () => INITIAL_VIDEOS.find((v) => v.id === 'vid-11') || INITIAL_VIDEOS[0]
   );
-  const [activeSrc, setActiveSrc] = useState<string>('/breast_cancer_awareness.mp4');
+  const [activeSrc, setActiveSrc] = useState<string>(() => withBase('/breast_cancer_awareness.mp4'));
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [likes, setLikes] = useState<number>(124000);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
@@ -85,9 +87,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!hasEntered || !selectedVideo) return;
 
-    const initialSrc = selectedVideo.videoSrc.startsWith('/')
-      ? selectedVideo.videoSrc
-      : `/${selectedVideo.videoSrc}`;
+    const initialSrc = withBase(selectedVideo.videoSrc);
     setActiveSrc(initialSrc);
 
     if (typeof window !== 'undefined') {
@@ -193,7 +193,7 @@ export default function HomePage() {
   };
 
   const handleStreamSwitch = async (newSrc: string) => {
-    const formattedSrc = newSrc.startsWith('/') ? newSrc : `/${newSrc}`;
+    const formattedSrc = withBase(newSrc);
     setActiveSrc(formattedSrc);
 
     if (videoPlayerRef.current) {
@@ -235,10 +235,10 @@ export default function HomePage() {
   const related = videos.filter((v) => v.id !== selectedVideo.id);
 
   const streams = [
-    { label: 'Doctor FAQs & Awareness Guide', src: '/breast_cancer_awareness.mp4', icon: '📺' },
-    { label: 'Awareness Coalition PSA', src: '/breast_cancer_psa.mp4', icon: '📢' },
-    { label: 'Clinical Palpation Exam', src: '/breast_exam_video.webm', icon: '🩺' },
-    { label: 'Healthy Driven PSA', src: '/healthy_driven_breast_cancer.mp4', icon: '🎗️' },
+    { label: 'Doctor FAQs & Awareness Guide', src: withBase('/breast_cancer_awareness.mp4'), icon: '📺' },
+    { label: 'Awareness Coalition PSA', src: withBase('/breast_cancer_psa.mp4'), icon: '📢' },
+    { label: 'Clinical Palpation Exam', src: withBase('/breast_exam_video.webm'), icon: '🩺' },
+    { label: 'Healthy Driven PSA', src: withBase('/healthy_driven_breast_cancer.mp4'), icon: '🎗️' },
   ];
 
   // Render Examination Action Card with consent checkbox
@@ -389,7 +389,7 @@ export default function HomePage() {
                   >
                     <div className="thumbnail-container">
                       <img
-                        src={`/images/thumb_${thumbIndex}.jpg`}
+                        src={withBase(`/images/thumb_${thumbIndex}.jpg`)}
                         alt={video.title}
                         className="thumbnail-svg"
                         loading="lazy"
@@ -660,7 +660,7 @@ export default function HomePage() {
                     >
                       <div className="related-thumb">
                         <img
-                          src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 12) + 1}.jpg`}
+                          src={withBase(`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 12) + 1}.jpg`)}
                           alt={item.title}
                         />
                         <span className="duration-badge">{item.duration}</span>

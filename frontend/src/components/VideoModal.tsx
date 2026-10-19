@@ -1,5 +1,7 @@
 'use client';
 
+import { withBase } from '@/lib/basePath';
+
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { VideoItem, recordView, RecordViewResponse } from '@/lib/api';
@@ -23,7 +25,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   onOpenReminder,
   onOpenShare,
 }) => {
-  const [activeSrc, setActiveSrc] = useState<string>('/breast_cancer_awareness.mp4');
+  const [activeSrc, setActiveSrc] = useState<string>(() => withBase('/breast_cancer_awareness.mp4'));
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [likes, setLikes] = useState<number>(124000);
@@ -169,10 +171,10 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   const related = allVideos.filter((v) => v.id !== video.id).slice(0, 5);
 
   const streams = [
-    { label: 'Doctor FAQs & Awareness Guide', src: '/breast_cancer_awareness.mp4', icon: '📺' },
-    { label: 'Awareness Coalition PSA', src: '/breast_cancer_psa.mp4', icon: '📢' },
-    { label: 'Clinical Palpation Exam', src: '/breast_exam_video.webm', icon: '🩺' },
-    { label: 'Healthy Driven PSA', src: '/healthy_driven_breast_cancer.mp4', icon: '🎗️' },
+    { label: 'Doctor FAQs & Awareness Guide', src: withBase('/breast_cancer_awareness.mp4'), icon: '📺' },
+    { label: 'Awareness Coalition PSA', src: withBase('/breast_cancer_psa.mp4'), icon: '📢' },
+    { label: 'Clinical Palpation Exam', src: withBase('/breast_exam_video.webm'), icon: '🩺' },
+    { label: 'Healthy Driven PSA', src: withBase('/healthy_driven_breast_cancer.mp4'), icon: '🎗️' },
   ];
 
   return (
@@ -449,7 +451,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                 >
                   <div className="related-thumb">
                     <img
-                      src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 12) + 1}.jpg`}
+                      src={withBase(`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 12) + 1}.jpg`)}
                       alt={item.title}
                     />
                     <span className="duration-badge">{item.duration}</span>
