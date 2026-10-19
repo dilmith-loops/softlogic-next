@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . "/config.php";
 
+date_default_timezone_set('Asia/Colombo');
+
 function getDb(): PDO {
     static $pdo = null;
     if ($pdo !== null) return $pdo;
@@ -24,6 +26,7 @@ function getDb(): PDO {
                 PDO::ATTR_TIMEOUT => 2,
             ];
             $pdo = new PDO($dsn, $user, $pass, $options);
+            $pdo->exec("SET time_zone = '+05:30'");
             $mysqlConnected = true;
         } catch (Throwable $e) {
             $mysqlConnected = false;
@@ -46,7 +49,16 @@ function getDb(): PDO {
                 video_src TEXT,
                 ip_address TEXT NOT NULL,
                 user_agent TEXT,
-                viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                viewed_at DATETIME NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS exam_starts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip_address TEXT NOT NULL,
+                user_agent TEXT,
+                video_id TEXT,
+                consented INTEGER NOT NULL DEFAULT 1,
+                started_at DATETIME NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS users (
@@ -84,6 +96,17 @@ function getDb(): PDO {
                 INDEX `idx_video_id` (`video_id`),
                 INDEX `idx_ip_address` (`ip_address`),
                 INDEX `idx_viewed_at` (`viewed_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+            CREATE TABLE IF NOT EXISTS `exam_starts` (
+                `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `ip_address` VARCHAR(45) NOT NULL,
+                `user_agent` TEXT NULL,
+                `video_id` VARCHAR(191) NULL,
+                `consented` TINYINT(1) NOT NULL DEFAULT 1,
+                `started_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX `idx_exam_ip` (`ip_address`),
+                INDEX `idx_exam_started_at` (`started_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
             CREATE TABLE IF NOT EXISTS `users` (

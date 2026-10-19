@@ -4,7 +4,7 @@ import { withBase } from '@/lib/basePath';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { VideoItem, recordView, RecordViewResponse } from '@/lib/api';
+import { VideoItem, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
 
 interface VideoModalProps {
   video: VideoItem | null;
@@ -28,7 +28,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   const [activeSrc, setActiveSrc] = useState<string>(() => withBase('/breast_cancer_awareness.mp4'));
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [likes, setLikes] = useState<number>(124000);
+  const [likes, setLikes] = useState<number>(0);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
   const [examConsent, setExamConsent] = useState<boolean>(false);
   const [consentError, setConsentError] = useState<boolean>(false);
@@ -96,22 +96,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
     const initialSrc = video.videoSrc.startsWith('/') ? video.videoSrc : `/${video.videoSrc}`;
     setActiveSrc(initialSrc);
 
-    // Call Laravel Backend to log IP address, video, and date & time
-    const logPlay = async () => {
-      setIsRecording(true);
-      try {
-        const res = await recordView(video.id, video.title, initialSrc);
-        if (res && res.success) {
-          setRecordedData(res.data);
-        }
-      } catch (err) {
-        console.error('Failed to log view in DB', err);
-      } finally {
-        setIsRecording(false);
-      }
-    };
-
-    logPlay();
+    // IP view log triggered only when video play starts
 
     // Reset video player time and play if not in exam
     if (typeof window !== "undefined" && localStorage.getItem("checkhub_in_exam") === "true") {

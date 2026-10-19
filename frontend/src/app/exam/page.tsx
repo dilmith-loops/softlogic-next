@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { recordExamStart } from '@/lib/api';
 
 // Silhouette shared by mirror steps
 const TORSO = `
@@ -149,6 +150,16 @@ export default function ExamPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [elapsed, setElapsed] = useState(0); // ms within current step
   const [playing, setPlaying] = useState(true);
+
+  // Record exam start in MySQL if not already logged
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (sessionStorage.getItem('exam_start_logged') !== 'true') {
+        sessionStorage.setItem('exam_start_logged', 'true');
+        recordExamStart().catch(console.warn);
+      }
+    }
+  }, []);
   const [isDone, setIsDone] = useState(false);
 
   const lyricsScrollRef = useRef<HTMLDivElement>(null);

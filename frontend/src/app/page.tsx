@@ -11,7 +11,7 @@ import { SubNav } from '@/components/SubNav';
 import { SelfCheckModal } from '@/components/SelfCheckModal';
 import { ReminderModal } from '@/components/ReminderModal';
 import { ShareModal } from '@/components/ShareModal';
-import { VideoItem, getVideos, recordView, RecordViewResponse } from '@/lib/api';
+import { VideoItem, getVideos, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
 import { INITIAL_VIDEOS } from '@/lib/videoData';
 
 export default function HomePage() {
@@ -21,7 +21,7 @@ export default function HomePage() {
   );
   const [activeSrc, setActiveSrc] = useState<string>(() => withBase('/breast_cancer_awareness.mp4'));
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
-  const [likes, setLikes] = useState<number>(124000);
+  const [likes, setLikes] = useState<number>(0);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
   const [examConsent, setExamConsent] = useState<boolean>(false);
   const [consentError, setConsentError] = useState<boolean>(false);
@@ -83,6 +83,24 @@ export default function HomePage() {
     loadVideos();
   }, []);
 
+    const loggedPlaysRef = useRef<Set<string>>(new Set());
+
+  // Log IP & view event ONLY when user actually plays/views the video (not on landing page)
+  const handleVideoPlay = () => {
+    if (!selectedVideo) return;
+    const key = selectedVideo.id + '_' + activeSrc;
+    if (loggedPlaysRef.current.has(key)) return;
+    loggedPlaysRef.current.add(key);
+
+    recordView(selectedVideo.id, selectedVideo.title, activeSrc)
+      .then((res) => {
+        if (res && res.success) {
+          setRecordedData(res.data);
+        }
+      })
+      .catch(console.warn);
+  };
+
   // When selectedVideo changes on the watch page: update source, record IP in MySQL, and persist
   useEffect(() => {
     if (!hasEntered || !selectedVideo) return;
@@ -97,14 +115,7 @@ export default function HomePage() {
       window.history.replaceState(null, '', url.toString());
     }
 
-    // Record user IP address and view event in MySQL
-    recordView(selectedVideo.id, selectedVideo.title, initialSrc)
-      .then((res) => {
-        if (res && res.success) {
-          setRecordedData(res.data);
-        }
-      })
-      .catch(console.warn);
+    // Note: IP log is triggered on video play event, not on landing page
 
     // Play video if not in exam
     if (typeof window !== "undefined" && localStorage.getItem("checkhub_in_exam") === "true") {
@@ -192,7 +203,7 @@ export default function HomePage() {
     });
   };
 
-  const handleStreamSwitch = async (newSrc: string) => {
+  const handleStreamSwitch = (newSrc: string) => {
     const formattedSrc = withBase(newSrc);
     setActiveSrc(formattedSrc);
 
@@ -200,19 +211,6 @@ export default function HomePage() {
       videoPlayerRef.current.src = formattedSrc;
       videoPlayerRef.current.load();
       videoPlayerRef.current.play().catch(console.warn);
-    }
-
-    try {
-      const res = await recordView(
-        selectedVideo.id,
-        `${selectedVideo.title} (Stream: ${newSrc})`,
-        formattedSrc
-      );
-      if (res && res.success) {
-        setRecordedData(res.data);
-      }
-    } catch (e) {
-      console.warn(e);
     }
   };
 
@@ -283,7 +281,10 @@ export default function HomePage() {
           }
           try {
             localStorage.setItem("checkhub_in_exam", "true");
+            sessionStorage.setItem("exam_start_logged", "true");
           } catch {}
+          // Record consented exam start in MySQL with IP and Sri Lanka timestamp
+          recordExamStart(selectedVideo?.id).catch(console.warn);
         }}
       >
         🩺 Take 3-Minute Breast Examination
@@ -407,7 +408,7 @@ export default function HomePage() {
                         {video.authorVerified && <span className="author-check">✓</span>}
                       </div>
                       <div className="card-stats">
-                        <span>👁️ {video.views}</span>
+                        <span>👁️ {video.viewsCount || 0} real views</span>
                         <span className="rating">👍 {video.rating}%</span>
                       </div>
                     </div>
@@ -496,6 +497,7 @@ export default function HomePage() {
                     playsInline
                     loop
                     preload="metadata"
+                    onPlay={handleVideoPlay}
                   >
                     Your browser does not support HTML5 video.
                   </video>
@@ -528,7 +530,7 @@ export default function HomePage() {
                     <div className="video-stats-bar">
                       <div className="stats-left">
                         <span className="views-count">
-                          👁️ {recordedData ? recordedData.total_views.toLocaleString() : selectedVideo.views} views
+                          👁️ {recordedData ? recordedData.total_views.toLocaleString() : (selectedVideo.viewsCount || 0).toLocaleString()} real views
                         </span>
                         <span className="date-posted">Published: {selectedVideo.date}</span>
                         <span className="verified-tag">✓ Medically Reviewed</span>
@@ -542,7 +544,7 @@ export default function HomePage() {
                           }}
                           style={{ color: hasLiked ? 'var(--hub-orange)' : undefined }}
                         >
-                          👍 <span>{Math.floor(likes / 1000)}K</span>
+                          👍 <span>{likes}</span>
                         </button>
                         <button className="interaction-btn dislike-btn">
                           👎 <span>42</span>
@@ -669,7 +671,7 @@ export default function HomePage() {
                         <div className="related-title">{item.title}</div>
                         <div className="related-meta">{item.author}</div>
                         <div className="related-meta">
-                          👁️ {item.views} · 👍 {item.rating}%
+                          👁️ {item.viewsCount || 0} real views · 👍 {item.rating}%
                         </div>
                       </div>
                     </div>

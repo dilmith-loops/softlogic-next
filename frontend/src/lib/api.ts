@@ -1,6 +1,6 @@
 /**
  * CheckHub API Client
- * Interacts with Laravel backend REST API on MySQL
+ * Interacts with backend REST API on MySQL with Sri Lanka Time (SLST)
  */
 
 const getApiBaseUrl = () => {
@@ -15,6 +15,35 @@ const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
+
+/**
+ * Format any timestamp into Sri Lanka Standard Time (Asia/Colombo, UTC+05:30)
+ */
+export function formatSriLankanDateTime(dateStr: string | null | undefined): string {
+  if (!dateStr || dateStr === 'Never') return dateStr || '—';
+  try {
+    let cleanStr = String(dateStr).trim();
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(cleanStr)) {
+      cleanStr = cleanStr.replace(' ', 'T') + '+05:30';
+    }
+    const d = new Date(cleanStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return (
+      d.toLocaleString('en-US', {
+        timeZone: 'Asia/Colombo',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      }) + ' (SLST)'
+    );
+  } catch {
+    return String(dateStr);
+  }
+}
 
 export interface VideoItem {
   id: string;
@@ -56,6 +85,26 @@ export interface RecordViewResponse {
   };
 }
 
+export interface ExamStartItem {
+  id: number;
+  ip_address: string;
+  user_agent: string | null;
+  video_id: string | null;
+  consented: number;
+  started_at: string;
+}
+
+export interface ExamStartsResponse {
+  success: boolean;
+  data: ExamStartItem[];
+  pagination: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
 export interface AdminUser {
   id: number;
   name: string;
@@ -70,12 +119,14 @@ export interface AdminStats {
     unique_ips: number;
     today_views: number;
     total_videos: number;
+    total_exam_starts: number;
+    today_exam_starts: number;
+    unique_exam_ips: number;
   };
   videos_breakdown: Array<{
     id: string;
     title: string;
     category: string;
-    total_views: number;
     real_recorded_views: number;
     unique_ips: number;
     last_viewed_at: string;
@@ -116,7 +167,7 @@ export interface AdminViewsResponse {
 }
 
 /**
- * Fetch video listing with dynamic view counts from Laravel & MySQL
+ * Fetch video listing with dynamic real view counts from MySQL
  */
 export async function getVideos(params?: { category?: string; search?: string; sort?: string }): Promise<VideoItem[]> {
   try {
@@ -142,7 +193,8 @@ export async function getVideos(params?: { category?: string; search?: string; s
 }
 
 /**
- * Record a video play in MySQL database with user IP address and timestamp
+ * Record a video play in MySQL database with user IP address and Sri Lanka timestamp.
+ * Triggered ONLY when the user actually plays/watches the video.
  */
 export async function recordView(videoId: string, videoTitle?: string, videoSrc?: string): Promise<RecordViewResponse | null> {
   try {
@@ -168,6 +220,53 @@ export async function recordView(videoId: string, videoTitle?: string, videoSrc?
     console.error('Error logging video view to DB:', err);
     return null;
   }
+}
+
+/**
+ * Record Exam Start event when user checks consent box and clicks "Take Breast Examination"
+ */
+export async function recordExamStart(videoId?: string): Promise<{ success: boolean; data?: any } | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/exam-starts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        video_id: videoId || null,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to record exam start: ${res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error('Error recording exam start to DB:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetch Paginated Exam Starts for Admin
+ */
+export async function getAdminExamStarts(token: string, page = 1, perPage = 25): Promise<ExamStartsResponse> {
+  const res = await fetch(`${API_BASE_URL}/admin/exam-starts?page=${page}&per_page=${perPage}`, {
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  });
+
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.message || 'Failed to fetch exam starts');
+  }
+
+  return json;
 }
 
 /**
@@ -269,7 +368,7 @@ export async function getAdminViews(
  * Create a new Administrator account into MySQL DB
  */
 export async function createAdminUser(token: string, payload: { name: string; email: string; password: string }) {
-  const res = await fetch(`${API_BASE_URL}/admin/create-user`, {
+  const res = await fetch(`${API_BASE_URL}/admin/users`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

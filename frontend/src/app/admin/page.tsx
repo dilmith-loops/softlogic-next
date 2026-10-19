@@ -6,11 +6,14 @@ import Link from 'next/link';
 import {
   AdminStats,
   AdminViewsResponse,
+  ExamStartsResponse,
   AdminUser,
   getAdminStats,
   getAdminViews,
+  getAdminExamStarts,
   adminLogout,
   createAdminUser,
+  formatSriLankanDateTime,
 } from '@/lib/api';
 
 export default function AdminDashboardPage() {
@@ -21,6 +24,7 @@ export default function AdminDashboardPage() {
   // Analytics & Logs State
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [viewsData, setViewsData] = useState<AdminViewsResponse | null>(null);
+  const [examStartsData, setExamStartsData] = useState<ExamStartsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +34,8 @@ export default function AdminDashboardPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'logs' | 'videos' | 'ips'>('logs');
+  const [examPage, setExamPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<'logs' | 'videos' | 'ips' | 'exams'>('logs');
 
   // New Admin Modal State
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
@@ -67,7 +72,7 @@ export default function AdminDashboardPage() {
     setError(null);
 
     try {
-      const [statsRes, viewsRes] = await Promise.all([
+      const [statsRes, viewsRes, examStartsRes] = await Promise.all([
         getAdminStats(token),
         getAdminViews(token, {
           search: searchIp,
@@ -77,10 +82,14 @@ export default function AdminDashboardPage() {
           page,
           per_page: 25,
         }),
+        getAdminExamStarts(token, examPage, 25).catch(() => null),
       ]);
 
       setStats(statsRes);
       setViewsData(viewsRes);
+      if (examStartsRes) {
+        setExamStartsData(examStartsRes);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(msg);
@@ -91,7 +100,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, searchIp, selectedVideo, dateFrom, dateTo, page, router]);
+  }, [token, searchIp, selectedVideo, dateFrom, dateTo, page, examPage, router]);
 
   useEffect(() => {
     if (token) {
@@ -108,11 +117,18 @@ export default function AdminDashboardPage() {
     router.push('/admin/login');
   };
 
-  const handleExportCsv = () => {
+  const getApiUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/softlogic")) {
+      return "/softlogic/api";
+    }
+    return "http://localhost:8000/api";
+  };
+
+  const handleExportViewsCsv = () => {
     if (!token) return;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-    // Download via authenticated fetch
-    fetch(`${apiUrl}/admin/export`, {
+    const apiUrl = getApiUrl();
+    fetch(`${apiUrl}/admin/export?type=views`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -123,6 +139,27 @@ export default function AdminDashboardPage() {
         const a = document.createElement('a');
         a.href = url;
         a.download = `checkhub_video_views_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      })
+      .catch((e) => alert('Export failed: ' + e));
+  };
+
+  const handleExportExamCsv = () => {
+    if (!token) return;
+    const apiUrl = getApiUrl();
+    fetch(`${apiUrl}/admin/export?type=exam`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `checkhub_consented_exam_starts_${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -207,16 +244,21 @@ export default function AdminDashboardPage() {
         {/* Header Row */}
         <div className="admin-header-row">
           <div className="admin-title-area">
-            <h1>Video Views &amp; User IP Analytics</h1>
-            <p>Every view event is recorded in the MySQL database with the user&apos;s IP address and exact timestamp.</p>
+            <h1>Video Views, Exam Starts &amp; User IP Analytics</h1>
+            <p>
+              100% real recorded events in Sri Lanka Standard Time (Asia/Colombo UTC+05:30). View logging triggers only when a video is played.
+            </p>
           </div>
 
           <div className="admin-header-actions">
             <button onClick={loadDashboardData} className="admin-btn admin-btn-secondary" title="Reload from MySQL">
               🔄 Refresh Data
             </button>
-            <button onClick={handleExportCsv} className="admin-btn admin-btn-secondary">
-              📥 Export CSV
+            <button onClick={handleExportViewsCsv} className="admin-btn admin-btn-secondary">
+              📥 Export Views CSV
+            </button>
+            <button onClick={handleExportExamCsv} className="admin-btn admin-btn-secondary" style={{ border: '1px solid rgba(255,144,0,0.5)' }}>
+              🩺 Export Exam CSV
             </button>
             <button onClick={() => setIsAddAdminOpen(true)} className="admin-btn admin-btn-primary">
               + Add Admin (DB)
@@ -231,8 +273,8 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* Metric Cards Grid */}
-        <div className="admin-metrics-grid">
+        {/* Metric Cards Grid - 5 Real Metrics Only */}
+        <div className="admin-metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))' }}>
           <div className="admin-metric-card">
             <div className="metric-header">
               <span className="metric-label">Real Recorded Views</span>
@@ -246,13 +288,13 @@ export default function AdminDashboardPage() {
 
           <div className="admin-metric-card accent-pink">
             <div className="metric-header">
-              <span className="metric-label">Unique User IPs</span>
+              <span className="metric-label">Unique Viewer IPs</span>
               <span className="metric-icon">🌐</span>
             </div>
             <div className="metric-value">
               {stats ? stats.overview.unique_ips.toLocaleString() : '0'}
             </div>
-            <div className="metric-sub">Distinct IP addresses tracked</div>
+            <div className="metric-sub">Distinct IP addresses watched videos</div>
           </div>
 
           <div className="admin-metric-card accent-cyan">
@@ -263,7 +305,21 @@ export default function AdminDashboardPage() {
             <div className="metric-value">
               {stats ? stats.overview.today_views.toLocaleString() : '0'}
             </div>
-            <div className="metric-sub">Since 00:00:00 today</div>
+            <div className="metric-sub">Since 00:00:00 today (SLST)</div>
+          </div>
+
+          {/* Consented Exam Starts Metric Card */}
+          <div className="admin-metric-card" style={{ borderColor: 'rgba(255, 144, 0, 0.4)' }}>
+            <div className="metric-header">
+              <span className="metric-label" style={{ color: 'var(--hub-orange)' }}>Consented Exam Starts</span>
+              <span className="metric-icon">🩺</span>
+            </div>
+            <div className="metric-value" style={{ color: 'var(--hub-orange)' }}>
+              {stats ? (stats.overview.total_exam_starts ?? 0).toLocaleString() : '0'}
+            </div>
+            <div className="metric-sub">
+              {stats ? (stats.overview.unique_exam_ips ?? 0) : 0} distinct IPs consented &amp; clicked start
+            </div>
           </div>
 
           <div className="admin-metric-card accent-green">
@@ -279,7 +335,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveTab('logs')}
             className={`admin-btn ${activeTab === 'logs' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
@@ -300,6 +356,13 @@ export default function AdminDashboardPage() {
             style={{ borderRadius: '6px' }}
           >
             🌐 Top Active IP Addresses
+          </button>
+          <button
+            onClick={() => setActiveTab('exams')}
+            className={`admin-btn ${activeTab === 'exams' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            style={{ borderRadius: '6px', background: activeTab === 'exams' ? 'var(--hub-orange)' : undefined, color: activeTab === 'exams' ? '#000' : undefined }}
+          >
+            🩺 Consented Exam Starts ({stats?.overview.total_exam_starts ?? 0})
           </button>
         </div>
 
@@ -384,7 +447,7 @@ export default function AdminDashboardPage() {
             <div className="admin-card-section">
               <div className="admin-card-header">
                 <h3 className="admin-card-title">
-                  <span>📋 Real-Time View Stream</span>
+                  <span>📋 Real-Time View Stream (Logged only upon video play)</span>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                     ({viewsData?.pagination.total || 0} total records recorded in MySQL)
                   </span>
@@ -398,7 +461,7 @@ export default function AdminDashboardPage() {
                       <th>ID</th>
                       <th>Video ID &amp; Title</th>
                       <th>User IP Address</th>
-                      <th>Date &amp; Time (Timestamp)</th>
+                      <th>Sri Lankan Date &amp; Time (SLST)</th>
                       <th>Browser / Device (User Agent)</th>
                     </tr>
                   </thead>
@@ -433,15 +496,12 @@ export default function AdminDashboardPage() {
                           </td>
                           <td>
                             <span className="date-badge">
-                              🕒 {new Date(row.viewed_at).toLocaleString('en-US', {
-                                dateStyle: 'medium',
-                                timeStyle: 'medium',
-                              })}
+                              🕒 {formatSriLankanDateTime(row.viewed_at)}
                             </span>
                           </td>
                           <td>
                             <div className="user-agent-text" title={row.user_agent || 'Unknown'}>
-                              {row.user_agent || 'Direct API / Localhost'}
+                              {row.user_agent || 'Direct API / Web Browser'}
                             </div>
                           </td>
                         </tr>
@@ -449,7 +509,7 @@ export default function AdminDashboardPage() {
                     ) : (
                       <tr>
                         <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                          No video views recorded yet. Open a video dialog on the home page to record your IP!
+                          No video views recorded yet. Playing a video on the home page logs the user&apos;s IP!
                         </td>
                       </tr>
                     )}
@@ -492,7 +552,7 @@ export default function AdminDashboardPage() {
         {activeTab === 'videos' && (
           <div className="admin-card-section">
             <div className="admin-card-header">
-              <h3 className="admin-card-title">📊 Per-Video View &amp; IP Performance</h3>
+              <h3 className="admin-card-title">📊 Per-Video Real View &amp; IP Performance</h3>
             </div>
             <div className="admin-table-container">
               <table className="admin-table">
@@ -503,7 +563,7 @@ export default function AdminDashboardPage() {
                     <th>Category</th>
                     <th>Real Recorded Views (DB)</th>
                     <th>Unique IP Addresses</th>
-                    <th>Last Viewed Timestamp</th>
+                    <th>Last Viewed Timestamp (SLST)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -517,14 +577,14 @@ export default function AdminDashboardPage() {
                         </span>
                       </td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981' }}>
-                        {v.real_recorded_views.toLocaleString()}
+                        {v.real_recorded_views.toLocaleString()} views
                       </td>
                       <td>
                         <div className="ip-badge">
                           <span>🌐 {v.unique_ips} Unique IPs</span>
                         </div>
                       </td>
-                      <td className="date-badge">{v.last_viewed_at}</td>
+                      <td className="date-badge">{formatSriLankanDateTime(v.last_viewed_at)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -546,8 +606,8 @@ export default function AdminDashboardPage() {
                     <th>User IP Address</th>
                     <th>Total Views From IP</th>
                     <th>Distinct Videos Watched</th>
-                    <th>First Seen (Timestamp)</th>
-                    <th>Last Seen (Timestamp)</th>
+                    <th>First Seen (SLST)</th>
+                    <th>Last Seen (SLST)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -570,8 +630,8 @@ export default function AdminDashboardPage() {
                           {ip.total_views.toLocaleString()} views
                         </td>
                         <td style={{ fontFamily: 'var(--font-mono)' }}>{ip.unique_videos} videos</td>
-                        <td className="date-badge">🕒 {ip.first_seen}</td>
-                        <td className="date-badge">🕒 {ip.last_seen}</td>
+                        <td className="date-badge">🕒 {formatSriLankanDateTime(ip.first_seen)}</td>
+                        <td className="date-badge">🕒 {formatSriLankanDateTime(ip.last_seen)}</td>
                       </tr>
                     ))
                   ) : (
@@ -584,6 +644,117 @@ export default function AdminDashboardPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* TAB 4: CONSENTED EXAM STARTS */}
+        {activeTab === 'exams' && (
+          <div className="admin-card-section">
+            <div className="admin-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="admin-card-title">
+                <span>🩺 Consented Examination Starts</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                  ({examStartsData?.pagination.total || stats?.overview.total_exam_starts || 0} total users submitted consent and clicked start)
+                </span>
+              </h3>
+              <button onClick={handleExportExamCsv} className="admin-btn admin-btn-secondary" style={{ fontSize: '0.82rem' }}>
+                📥 Download Exam Starts CSV
+              </button>
+            </div>
+
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User IP Address</th>
+                    <th>Sri Lankan Date &amp; Time (SLST)</th>
+                    <th>Associated Video</th>
+                    <th>Consent &amp; Action</th>
+                    <th>Browser / Device (User Agent)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                        Loading exam start records from MySQL...
+                      </td>
+                    </tr>
+                  ) : examStartsData && examStartsData.data.length > 0 ? (
+                    examStartsData.data.map((row) => (
+                      <tr key={row.id}>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--hub-orange)' }}>#{row.id}</td>
+                        <td>
+                          <div className="ip-badge">
+                            <span>🌐 {row.ip_address}</span>
+                            <button
+                              onClick={() => copyToClipboard(row.ip_address)}
+                              className="ip-copy-btn"
+                              title="Copy IP Address"
+                            >
+                              📋
+                            </button>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="date-badge">
+                            🕒 {formatSriLankanDateTime(row.started_at)}
+                          </span>
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                          {row.video_id ? row.video_id : 'General Exam'}
+                        </td>
+                        <td>
+                          <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.78rem', fontWeight: 600 }}>
+                            ✓ Consent Submitted &amp; Exam Started
+                          </span>
+                        </td>
+                        <td>
+                          <div className="user-agent-text" title={row.user_agent || 'Unknown'}>
+                            {row.user_agent || 'Direct Web Browser'}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                        No examination starts recorded yet. When a user submits the consent checkbox and clicks &quot;Take 3-Minute Breast Examination&quot;, it appears here!
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination for Exam Starts */}
+            {examStartsData && examStartsData.pagination.last_page > 1 && (
+              <div className="admin-pagination-bar">
+                <span>
+                  Page {examStartsData.pagination.current_page} of {examStartsData.pagination.last_page} ({examStartsData.pagination.total} total exam starts)
+                </span>
+                <div className="pagination-controls">
+                  <button
+                    onClick={() => setExamPage((p) => Math.max(p - 1, 1))}
+                    disabled={examStartsData.pagination.current_page <= 1}
+                    className="page-btn"
+                  >
+                    ← Previous
+                  </button>
+                  <span style={{ padding: '0 0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                    {examStartsData.pagination.current_page}
+                  </span>
+                  <button
+                    onClick={() => setExamPage((p) => Math.min(p + 1, examStartsData.pagination.last_page))}
+                    disabled={examStartsData.pagination.current_page >= examStartsData.pagination.last_page}
+                    className="page-btn"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -618,56 +789,65 @@ export default function AdminDashboardPage() {
               </p>
 
               {adminMsg && (
-                <div className={`admin-alert-box ${adminMsg.isError ? 'admin-alert-error' : 'admin-alert-success'}`}>
-                  {adminMsg.text}
+                <div
+                  className={`admin-alert-box ${adminMsg.isError ? 'admin-alert-error' : 'admin-alert-success'}`}
+                  style={{ marginBottom: '1.25rem' }}
+                >
+                  <span>{adminMsg.isError ? '⚠️' : '✓'}</span>
+                  <span>{adminMsg.text}</span>
                 </div>
               )}
 
               <form onSubmit={handleCreateAdminSubmit}>
-                <div className="admin-form-group">
-                  <label>Full Name</label>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     required
                     value={adminName}
                     onChange={(e) => setAdminName(e.target.value)}
-                    className="admin-form-input"
-                    placeholder="e.g. Clinical IT Director"
+                    placeholder="e.g. Dilmith Jayasuriya"
+                    className="admin-login-input"
                   />
                 </div>
 
-                <div className="admin-form-group">
-                  <label>Admin Email</label>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                    Email Address
+                  </label>
                   <input
                     type="email"
                     required
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    className="admin-form-input"
-                    placeholder="e.g. it-admin@checkhub.org"
+                    placeholder="e.g. dilmith@softlogic.lk"
+                    className="admin-login-input"
                   />
                 </div>
 
-                <div className="admin-form-group">
-                  <label>Password (Minimum 6 Characters)</label>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                    Password
+                  </label>
                   <input
                     type="password"
                     required
-                    minLength={6}
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    className="admin-form-input"
                     placeholder="••••••••••••"
+                    className="admin-login-input"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={creatingAdmin}
-                  className="admin-btn admin-btn-primary admin-btn-block"
-                  style={{ marginTop: '1.5rem' }}
+                  className="btn-subscribe"
+                  style={{ width: '100%', padding: '0.8rem', fontSize: '0.9rem', cursor: creatingAdmin ? 'not-allowed' : 'pointer' }}
                 >
-                  {creatingAdmin ? 'Saving into MySQL Database...' : '+ Save Administrator to Database'}
+                  {creatingAdmin ? 'Saving to MySQL...' : 'Create Admin in Database'}
                 </button>
               </form>
             </div>
