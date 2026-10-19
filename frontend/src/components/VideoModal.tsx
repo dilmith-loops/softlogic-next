@@ -140,14 +140,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
             <span className="hub-pill">Hub</span>
             <span className="modal-title-pill">NOW PLAYING: AWARENESS SPECIAL</span>
           </div>
-          <button
-            onClick={onClose}
-            className="action-btn"
-            style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.4rem 0.8rem', fontSize: '1rem', cursor: 'pointer' }}
-            title="Close dialog"
-          >
-            ✕ Close
-          </button>
+          
         </div>
 <div className="watch-layout">
           <div className="watch-main">
