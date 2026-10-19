@@ -1,366 +1,409 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 
+// Silhouette shared by mirror steps
+const TORSO = `
+  <circle cx="160" cy="62" r="24" class="ill-line"/>
+  <path d="M110 230 C110 150 128 112 160 112 C192 112 210 150 210 230" class="ill-line ill-fill"/>`;
+
 interface ExamStep {
-  id: number;
   title: string;
-  subtitle: string;
-  duration: number; // seconds
-  instructions: string[];
-  clinicalTip: string;
-  icon: string;
+  summary: string;
+  color: string;
+  svg: string;
+  lines: string[];
 }
 
-const EXAM_STEPS: ExamStep[] = [
+const STEPS: ExamStep[] = [
   {
-    id: 1,
-    title: 'Visual Inspection: Arms at Sides',
-    subtitle: 'Stand relaxed in front of a mirror with good lighting',
-    duration: 30,
-    instructions: [
-      'Examine the general outline, symmetry, and contour of both breasts.',
-      'Check for visible dimpling, puckering, or skin changes resembling an orange peel.',
-      'Look at your nipples: are they pointing the same way as usual, or is one inverted or pulled inward?',
+    title: 'Look in the mirror',
+    summary: "Stand straight, arms at your sides, and look for any visible change.",
+    color: '#b5520b',
+    svg: `
+      <rect x="70" y="14" width="180" height="240" rx="18" class="ill-soft"/>
+      <g class="anim-breathe">${TORSO}
+        <path d="M118 128 L100 210" class="ill-line"/><path d="M202 128 L220 210" class="ill-line"/>
+      </g>
+      <path d="M84 40 L104 26" class="ill-soft"/><path d="M84 60 L120 34" class="ill-soft"/>`,
+    lines: [
+      'Stand in front of a mirror, shoulders straight, arms at your sides.',
+      'Look at both breasts: their usual size, shape and colour.',
+      'Watch for any dimpling, puckering or bulging of the skin.',
+      'Notice a nipple that has changed position or turned inward.',
+      'Look for redness, soreness, a rash or swelling.',
+      "Small differences between sides are normal. You're looking for change.",
     ],
-    clinicalTip: 'Most breasts are not identical in size. You are looking for new asymmetries or recent changes.',
-    icon: '🪞',
   },
   {
-    id: 2,
-    title: 'Visual Inspection: Arms Overhead',
-    subtitle: 'Raise both arms high above your head and clasp your hands',
-    duration: 30,
-    instructions: [
-      'Observe how both breasts lift. Do they move upward smoothly together?',
-      'Check underneath the lower fold of each breast for hidden contour irregularities.',
-      'Look at the sides and underarms for unusual bulging or retraction.',
+    title: 'Raise your arms',
+    summary: "Lift your arms high and look again from a new angle.",
+    color: '#8c2f5c',
+    svg: `
+      <rect x="70" y="14" width="180" height="240" rx="18" class="ill-soft"/>
+      ${TORSO}
+      <path d="M122 124 L96 36" class="ill-line anim-raise left"/>
+      <path d="M198 124 L224 36" class="ill-line anim-raise right"/>
+      <path d="M150 170 h20" class="ill-soft"/>`,
+    lines: [
+      'Now raise both arms high above your head.',
+      'Look for the same changes from this new angle.',
+      'Then press your hands firmly on your hips and flex your chest muscles.',
+      'Turn slowly side to side to see the outer edges.',
+      'Any new dimple or pull in the skin is worth noting.',
+      "Take your time. There's no rush.",
     ],
-    clinicalTip: 'Raising arms pulls breast ligaments upward, making underlying tethered tumors stand out visibly.',
-    icon: '🙌',
   },
   {
-    id: 3,
-    title: 'Chest Muscle Contraction: Hands on Hips',
-    subtitle: 'Place hands firmly on hips and push elbows forward',
-    duration: 30,
-    instructions: [
-      'Press your hips firmly to flex and contract your pectoral muscles.',
-      'Bow slightly towards the mirror while continuing to flex.',
-      'Look for subtle puckering or skin tethering that only appears when chest muscles are engaged.',
+    title: 'Check the nipples',
+    summary: "Look closely at each nipple for discharge or skin changes.",
+    color: '#1f5f73',
+    svg: `
+      <circle cx="160" cy="130" r="70" class="ill-soft"/>
+      <circle cx="160" cy="130" r="22" class="ill-line ill-fill anim-pop"/>
+      <circle cx="160" cy="130" r="40" class="ill-line anim-ring"/>
+      <circle cx="160" cy="130" r="40" class="ill-line anim-ring delay"/>
+      <g class="anim-scan"><circle cx="160" cy="130" r="46" class="ill-soft"/><path d="M193 163 L232 202" class="ill-line"/></g>`,
+    lines: [
+      'Gently look at each nipple and the area around it.',
+      'Check for any fluid or discharge: watery, milky, yellow or bloody.',
+      'Notice scaling, crusting or flaky skin on the nipple.',
+      'Note any nipple that has recently become inverted.',
+      'Discharge from one side, without squeezing, should be checked.',
+      "Learn what's normal for you, so you can spot what isn't.",
     ],
-    clinicalTip: 'Tethering to the underlying chest wall muscle is a key diagnostic indicator in clinical exams.',
-    icon: '💪',
   },
   {
-    id: 4,
-    title: 'Palpation: Circular Technique (Right Breast)',
-    subtitle: 'Use the pads of your 3 middle fingers in small coin-sized circles',
-    duration: 30,
-    instructions: [
-      'Raise your right arm behind your head. Use your left hand fingers.',
-      'Use 3 pressure levels at each spot: light (surface), medium (middle tissue), firm (chest wall).',
-      'Follow an up-and-down vertical strip pattern or circular pattern until the entire breast is covered.',
+    title: 'Lie down and feel',
+    summary: "Use the pads of three fingers in small, coin-sized circles.",
+    color: '#2f6b3a',
+    svg: `
+      <circle cx="160" cy="130" r="80" class="ill-soft"/>
+      <circle cx="160" cy="130" r="50" class="ill-soft"/>
+      <circle cx="160" cy="130" r="20" class="ill-soft"/>
+      <g class="anim-orbit">
+        <circle cx="160" cy="80" r="12" class="ill-line ill-fill"/>
+        <circle cx="145" cy="72" r="9" class="ill-line"/><circle cx="175" cy="72" r="9" class="ill-line"/>
+      </g>
+      <text x="160" y="250" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-family="JetBrains Mono, monospace" font-size="12">LIGHT · MEDIUM · FIRM</text>`,
+    lines: [
+      'Lie down on your back and put your right arm behind your head.',
+      'Use the pads of the three middle fingers on your left hand.',
+      'Move in small, coin-sized circles over your right breast.',
+      'Use light pressure first, then medium, then firm.',
+      'Cover everything: collarbone to upper belly, armpit to cleavage.',
+      'Then switch sides and repeat on your left breast.',
     ],
-    clinicalTip: 'Never lift your fingers off the skin entirely; glide smoothly so no zone is missed.',
-    icon: '🩺',
   },
   {
-    id: 5,
-    title: 'Palpation: Circular Technique (Left Breast)',
-    subtitle: 'Repeat the exact circular palpation pattern for your left breast',
-    duration: 30,
-    instructions: [
-      'Raise your left arm behind your head. Use your right hand fingers.',
-      'Feel from collarbone down to below the bra line, and from breastbone across to the armpit.',
-      'Note any firm marble-like or seed-like hard nodule that does not slide away under pressure.',
+    title: 'Follow a pattern',
+    summary: "Move up and down in strips so you don't miss any area.",
+    color: '#6b3fa0',
+    svg: `
+      <rect x="40" y="34" width="240" height="192" rx="14" class="ill-soft"/>
+      <path d="M60 50 V210 H100 V50 H140 V210 H180 V50 H220 V210 H260 V50" class="ill-soft" stroke-dasharray="6 6"/>
+      <circle r="11" class="ill-dot">
+        <animateMotion dur="9s" repeatCount="indefinite" path="M60 50 V210 H100 V50 H140 V210 H180 V50 H220 V210 H260 V50"/>
+      </circle>`,
+    lines: [
+      'Use an up-and-down pattern, like mowing a lawn.',
+      'Start at the armpit and move across in vertical strips.',
+      'Keep your fingers flat and together as you move.',
+      'Feel for lumps, thickening, hard knots or anything different.',
+      "Don't forget the armpit, where the lymph nodes sit.",
+      'Many people repeat this in the shower, where soapy skin helps.',
     ],
-    clinicalTip: 'Normal glandular tissue can feel somewhat lumpy or ropey, especially before periods.',
-    icon: '🩺',
   },
   {
-    id: 6,
-    title: 'Underarm & Nipple Assessment',
-    subtitle: 'Check lymph nodes and check for nipple discharge',
-    duration: 30,
-    instructions: [
-      'Feel gently under both armpits for any enlarged, firm, or painless lymph nodes.',
-      'Check the "Tail of Spence" tissue that sweeps from the breast into the armpit hollow.',
-      'Gently squeeze both nipples to check for any clear, milky, or blood-tinged discharge.',
+    title: 'Know when to see a doctor',
+    summary: "Most lumps aren't cancer, but every new change deserves a check.",
+    color: '#a3243b',
+    svg: `
+      <rect x="80" y="40" width="160" height="170" rx="14" class="ill-line ill-fill"/>
+      <path d="M80 82 H240" class="ill-line"/>
+      <path d="M118 28 V52 M202 28 V52" class="ill-line"/>
+      <circle cx="160" cy="146" r="30" class="ill-line anim-pop"/>
+      <path d="M146 146 l10 10 l20 -20" class="ill-line"/>`,
+    lines: [
+      'Most lumps are not cancer, but every new change deserves a check.',
+      'See a doctor if you find a new lump, dimpling or nipple change.',
+      'Also see a doctor for discharge, lasting pain or skin changes.',
+      'Do this check once a month, a few days after your period ends.',
+      "If you don't have periods, pick the same day each month.",
+      "You've finished your 3-minute check. See you next month.",
     ],
-    clinicalTip: 'Over 50% of breast cancers begin in the upper-outer quadrant and underarm area.',
-    icon: '🔍',
   },
 ];
 
+const LINE_MS = 5000;
+const STEP_MS = LINE_MS * 6; // 30,000 ms
+const TOTAL_MS = STEP_MS * STEPS.length; // 180,000 ms
+
+function formatTime(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
 export default function ExamPage() {
-  const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  const [secondsRemaining, setSecondsRemaining] = useState(EXAM_STEPS[0].duration);
-  const [isRunning, setIsRunning] = useState(true);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [elapsed, setElapsed] = useState(0); // ms within current step
+  const [playing, setPlaying] = useState(true);
+  const [isDone, setIsDone] = useState(false);
 
-  const currentStep = EXAM_STEPS[currentStepIdx];
+  const lyricsScrollRef = useRef<HTMLDivElement>(null);
+  const lineRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const lastTickRef = useRef<number | null>(null);
 
-  // Timer countdown
-  useEffect(() => {
-    if (!isRunning || isCompleted) return;
+  // Active line calculation
+  const activeLine = Math.min(5, Math.floor(elapsed / LINE_MS));
 
-    if (secondsRemaining <= 0) {
-      if (currentStepIdx < EXAM_STEPS.length - 1) {
-        setCurrentStepIdx((prev) => prev + 1);
-        setSecondsRemaining(EXAM_STEPS[currentStepIdx + 1].duration);
-      } else {
-        setIsCompleted(true);
-      }
+  // Go to specific step
+  const goToStep = useCallback((i: number) => {
+    const validIdx = Math.max(0, Math.min(STEPS.length - 1, i));
+    setStepIndex(validIdx);
+    setElapsed(0);
+    setIsDone(false);
+    setPlaying(true);
+    lastTickRef.current = null;
+  }, []);
+
+  // Jump to specific line within the current step
+  const jumpToLine = (lineIdx: number) => {
+    setElapsed(lineIdx * LINE_MS);
+    lastTickRef.current = null;
+  };
+
+  // Next / Previous
+  const handlePrev = useCallback(() => {
+    if (elapsed > 3000) {
+      setElapsed(0);
+      lastTickRef.current = null;
+    } else {
+      goToStep(stepIndex - 1);
+    }
+  }, [elapsed, stepIndex, goToStep]);
+
+  const handleNext = useCallback(() => {
+    if (stepIndex === STEPS.length - 1) {
+      setPlaying(false);
+      setIsDone(true);
+      setElapsed(STEP_MS);
+    } else {
+      goToStep(stepIndex + 1);
+    }
+  }, [stepIndex, goToStep]);
+
+  const togglePlay = useCallback(() => {
+    if (isDone) {
+      goToStep(0);
       return;
     }
+    setPlaying((prev) => {
+      lastTickRef.current = null;
+      return !prev;
+    });
+  }, [isDone, goToStep]);
 
-    const interval = setInterval(() => {
-      setSecondsRemaining((s) => s - 1);
-    }, 1000);
+  // RequestAnimationFrame tick loop
+  useEffect(() => {
+    let animId: number;
 
-    return () => clearInterval(interval);
-  }, [secondsRemaining, isRunning, isCompleted, currentStepIdx]);
+    const tick = (now: number) => {
+      if (playing && !isDone) {
+        if (lastTickRef.current !== null) {
+          const delta = now - lastTickRef.current;
+          setElapsed((prev) => {
+            const nextElapsed = prev + delta;
+            if (nextElapsed >= STEP_MS) {
+              setStepIndex((currIdx) => {
+                if (currIdx < STEPS.length - 1) {
+                  return currIdx + 1;
+                } else {
+                  setIsDone(true);
+                  setPlaying(false);
+                  return currIdx;
+                }
+              });
+              return 0;
+            }
+            return nextElapsed;
+          });
+        }
+        lastTickRef.current = now;
+      }
+      animId = requestAnimationFrame(tick);
+    };
 
-  const handleNext = () => {
-    if (currentStepIdx < EXAM_STEPS.length - 1) {
-      const nextIdx = currentStepIdx + 1;
-      setCurrentStepIdx(nextIdx);
-      setSecondsRemaining(EXAM_STEPS[nextIdx].duration);
-    } else {
-      setIsCompleted(true);
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, [playing, isDone]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === ' ') {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrev();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay, handleNext, handlePrev]);
+
+  // Auto-scroll lyrics to active line
+  useEffect(() => {
+    const activeEl = lineRefs.current[activeLine];
+    const scrollContainer = lyricsScrollRef.current;
+    if (activeEl && scrollContainer) {
+      scrollContainer.scrollTo({
+        top: activeEl.offsetTop - scrollContainer.offsetTop - 16,
+        behavior: 'smooth',
+      });
     }
-  };
+  }, [activeLine, stepIndex]);
 
-  const handlePrev = () => {
-    if (currentStepIdx > 0) {
-      const prevIdx = currentStepIdx - 1;
-      setCurrentStepIdx(prevIdx);
-      setSecondsRemaining(EXAM_STEPS[prevIdx].duration);
-      setIsCompleted(false);
-    }
-  };
-
-  const handleRestart = () => {
-    setCurrentStepIdx(0);
-    setSecondsRemaining(EXAM_STEPS[0].duration);
-    setIsRunning(true);
-    setIsCompleted(false);
-  };
+  const currentStep = STEPS[stepIndex];
+  const totalElapsedMs = stepIndex * STEP_MS + (isDone ? STEP_MS : elapsed);
 
   return (
-    <div className="dark-theme" style={{ minHeight: '100vh', background: 'radial-gradient(ellipse at top, #1a1206 0%, #000 60%)' }}>
-      {/* Exam Header */}
+    <div className="dark-theme exam-page-container">
+      {/* Header */}
       <header className="exam-header">
+        <Link href="/" className="site-logo-badge" title="Back to CheckHub">
+          <span className="logo-text">Check</span>
+          <span className="hub-pill">Hub</span>
+        </Link>
         <Link href="/" className="exam-back">
           ← Back to CheckHub
         </Link>
-        <div className="site-logo-badge">
-          <span className="logo-text">Check</span>
-          <span className="hub-pill">Hub</span>
-        </div>
-        
       </header>
 
+      {/* Main Content */}
       <main className="exam-main">
         <div className="exam-heading">
-          <h1>3-Minute Guided Breast Examination</h1>
-          <p>Six clinical steps designed by breast surgical oncologists. Perform this monthly.</p>
+          <h1>Your 3-Minute Breast Self-Exam</h1>
+          <p>Follow along. Six steps, about 30 seconds each.</p>
         </div>
 
-        {/* Progress Bar Segments */}
+        {/* Progress Segments */}
         <div className="exam-progress">
-          {EXAM_STEPS.map((step, idx) => {
-            const isFinished = idx < currentStepIdx || isCompleted;
-            const isCurrent = idx === currentStepIdx && !isCompleted;
-            const width = isFinished
-              ? '100%'
-              : isCurrent
-              ? `${((step.duration - secondsRemaining) / step.duration) * 100}%`
-              : '0%';
+          {STEPS.map((_, i) => {
+            const pct = i < stepIndex ? 100 : i > stepIndex ? 0 : isDone ? 100 : (elapsed / STEP_MS) * 100;
             return (
-              <div
-                key={step.id}
-                className="exam-progress-seg"
-                onClick={() => {
-                  setCurrentStepIdx(idx);
-                  setSecondsRemaining(step.duration);
-                  setIsCompleted(false);
-                }}
-                title={`Jump to Step ${step.id}`}
-              >
-                <span style={{ width, transition: 'width 0.2s linear' }} />
+              <div key={i} className="exam-progress-seg" onClick={() => goToStep(i)} title={`Step ${i + 1}: ${STEPS[i].title}`}>
+                <span style={{ width: `${pct}%` }} />
               </div>
             );
           })}
         </div>
 
-        {!isCompleted ? (
-          <div
-            style={{
-              background: 'linear-gradient(145deg, #17171d 0%, #0e0e12 100%)',
-              border: '1px solid var(--border-light)',
-              borderRadius: '16px',
-              padding: '2.5rem 2rem',
-              maxWidth: '850px',
-              margin: '0 auto',
-              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
-            }}
-          >
-            {/* Step Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--hub-orange)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-                  Step {currentStep.id} of {EXAM_STEPS.length}
-                </span>
-                <h2 style={{ fontSize: '1.65rem', color: '#fff', marginTop: '0.2rem' }}>
-                  {currentStep.icon} {currentStep.title}
-                </h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{currentStep.subtitle}</p>
-              </div>
-
-              {/* Timer Badge */}
+        {/* Slide Stage with Visual & Step Info */}
+        <section className="exam-stage" aria-live="polite">
+          {STEPS.map((step, i) => (
+            <article
+              key={i}
+              className={`exam-slide ${i === stepIndex && !isDone ? "is-active" : i < stepIndex ? "is-past" : ""}`}
+            >
               <div
-                style={{
-                  background: 'rgba(255, 144, 0, 0.12)',
-                  border: '1px solid rgba(255, 144, 0, 0.35)',
-                  padding: '0.75rem 1.25rem',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <span style={{ fontSize: '1.2rem' }}>⏱️</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--hub-orange)' }}>
-                  00:{secondsRemaining < 10 ? `0${secondsRemaining}` : secondsRemaining}
-                </span>
+                className="exam-visual"
+                dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 320 260" aria-hidden="true">${step.svg}</svg>` }}
+              />
+              <div>
+                <div className="exam-step-num">Step {i + 1} of {STEPS.length}</div>
+                <h2>{step.title}</h2>
+                <p className="exam-summary">{step.summary}</p>
               </div>
-            </div>
+            </article>
+          ))}
 
-            {/* Checklist */}
-            <div style={{ margin: '1.75rem 0', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {currentStep.instructions.map((ins, i) => (
-                <div
+          {/* Completion Overlay */}
+          <div className={`exam-done ${isDone ? "is-visible" : ""}`}>
+            <h2>Check complete</h2>
+            <p>Nice work. Repeat this once a month, and see a doctor if you notice anything new or different.</p>
+            <div className="exam-done-actions">
+              <Link href="/" className="btn-done-primary">
+                Back to CheckHub
+              </Link>
+              <button type="button" className="btn-done-outline" onClick={() => goToStep(0)}>
+                Start again
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Controls */}
+        <div className="exam-controls">
+          <span className="exam-time">
+            {formatTime(totalElapsedMs)} / {formatTime(TOTAL_MS)}
+          </span>
+          <div className="exam-buttons">
+            <button type="button" className="exam-btn" onClick={handlePrev} aria-label="Previous step">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 5h2v14H6zM20 5v14L9 12z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="exam-btn play"
+              onClick={togglePlay}
+              aria-label={playing && !isDone ? "Pause" : "Play"}
+            >
+              <svg viewBox="0 0 24 24">
+                {playing && !isDone ? (
+                  <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                ) : (
+                  <path d="M7 4l13 8-13 8z" />
+                )}
+              </svg>
+            </button>
+            <button type="button" className="exam-btn" onClick={handleNext} aria-label="Next step">
+              <svg viewBox="0 0 24 24">
+                <path d="M16 5h2v14h-2zM4 5l11 7-11 7z" />
+              </svg>
+            </button>
+          </div>
+          <span className="exam-step-label">Step {stepIndex + 1} of {STEPS.length}</span>
+        </div>
+
+        {/* Spotify-style Lyrics Panel */}
+        <section className="lyrics-panel" style={{ backgroundColor: currentStep.color }}>
+          <div className="lyrics-panel-head">
+            <span>Instructions</span>
+            <span>{currentStep.title}</span>
+          </div>
+          <div className="lyrics-scroll" ref={lyricsScrollRef}>
+            <div className="lyrics-list">
+              {currentStep.lines.map((line, i) => (
+                <button
                   key={i}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid var(--border-subtle)',
-                    padding: '1rem 1.25rem',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.5,
+                  type="button"
+                  ref={(el) => {
+                    lineRefs.current[i] = el;
                   }}
+                  className={`lyric-line ${i === activeLine && !isDone ? "is-active" : i < activeLine ? "is-past" : ""}`}
+                  onClick={() => jumpToLine(i)}
                 >
-                  <span style={{ color: 'var(--hub-orange)', fontWeight: 800 }}>✓</span>
-                  <span>{ins}</span>
-                </div>
+                  {line}
+                </button>
               ))}
             </div>
-
-            {/* Clinical Tip */}
-            <div
-              style={{
-                background: 'rgba(56, 189, 248, 0.08)',
-                border: '1px solid rgba(56, 189, 248, 0.25)',
-                borderRadius: '8px',
-                padding: '0.85rem 1.25rem',
-                color: '#bae6fd',
-                fontSize: '0.88rem',
-                marginBottom: '2rem',
-                display: 'flex',
-                gap: '0.6rem',
-              }}
-            >
-              <span>💡</span>
-              <span>
-                <strong>Clinical Fact:</strong> {currentStep.clinicalTip}
-              </span>
-            </div>
-
-            {/* Action Bar */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ display: 'flex', gap: '0.6rem' }}>
-                <button
-                  onClick={() => setIsRunning(!isRunning)}
-                  className="admin-btn admin-btn-secondary"
-                  style={{ padding: '0.6rem 1.2rem' }}
-                >
-                  {isRunning ? '⏸️ Pause Timer' : '▶️ Resume Timer'}
-                </button>
-                <button
-                  onClick={handlePrev}
-                  disabled={currentStepIdx === 0}
-                  className="admin-btn admin-btn-secondary"
-                  style={{ padding: '0.6rem 1.2rem' }}
-                >
-                  ← Previous
-                </button>
-              </div>
-
-              <button
-                onClick={handleNext}
-                className="admin-btn admin-btn-primary"
-                style={{ padding: '0.6rem 1.5rem', fontSize: '0.95rem' }}
-              >
-                {currentStepIdx < EXAM_STEPS.length - 1 ? 'Next Step →' : 'Complete Exam 🎉'}
-              </button>
-            </div>
           </div>
-        ) : (
-          /* Completed Screen */
-          <div
-            style={{
-              background: 'linear-gradient(145deg, #17171d 0%, #0e0e12 100%)',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              borderRadius: '16px',
-              padding: '3rem 2rem',
-              maxWidth: '750px',
-              margin: '0 auto',
-              textAlign: 'center',
-              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)',
-            }}
-          >
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: '#fff', letterSpacing: '1px' }}>
-              Exam Completed! You Took Action Today
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', maxWidth: '580px', margin: '0.75rem auto 2rem', lineHeight: 1.6 }}>
-              Congratulations on completing your monthly routine. Routine self-awareness is how early irregularities are discovered before they spread.
-            </p>
+        </section>
 
-            <div
-              style={{
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                padding: '1.25rem',
-                borderRadius: '10px',
-                marginBottom: '2rem',
-                textAlign: 'left',
-              }}
-            >
-              <h4 style={{ color: '#10b981', marginBottom: '0.5rem', fontWeight: 800 }}>
-                What If You Felt Something Unusual?
-              </h4>
-              <p style={{ color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                Do not panic: 8 out of 10 breast lumps are benign (non-cancerous). Schedule an appointment with your primary physician or gynecologist for a clinical breast exam and diagnostic ultrasound/mammogram.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={handleRestart} className="admin-btn admin-btn-secondary" style={{ padding: '0.8rem 1.4rem' }}>
-                🔄 Restart Examination
-              </button>
-              <Link href="/" className="admin-btn admin-btn-primary" style={{ padding: '0.8rem 1.6rem', textDecoration: 'none' }}>
-                ← Return to CheckHub
-              </Link>
-            </div>
-          </div>
-        )}
+        {/* Disclaimer */}
+        <p className="exam-disclaimer">
+          This guide is for awareness only and does not replace a clinical breast exam or mammogram. If you notice any change, talk to a doctor.
+        </p>
       </main>
     </div>
   );

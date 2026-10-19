@@ -3937,3 +3937,485 @@ html, body {
   color: var(--text-secondary);
 }
 
+
+
+/* ============================================================
+   3-Minute Breast Self-Exam Styles
+   ============================================================ */
+
+.exam-page-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: radial-gradient(ellipse at top, #1a1206 0%, #000 60%);
+  color: #fff;
+  padding-bottom: 3rem;
+}
+
+.exam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
+}
+
+.exam-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.95rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.exam-back:hover {
+  color: #fff;
+  border-color: var(--hub-orange);
+}
+
+.exam-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem 2.5rem;
+}
+
+.exam-heading {
+  text-align: center;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.exam-heading h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  letter-spacing: 1px;
+  line-height: 1;
+  color: #fff;
+  margin: 0;
+}
+
+.exam-heading p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+/* Story-style progress segments */
+.exam-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+}
+
+.exam-progress-seg {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.exam-progress-seg span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--hub-orange);
+}
+
+/* Slide stage */
+.exam-stage {
+  position: relative;
+  background: linear-gradient(145deg, #17171d 0%, #0e0e12 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 340px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+.exam-slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.75rem 2.25rem;
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.exam-slide.is-active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.exam-slide.is-past {
+  transform: translateX(-40px);
+}
+
+.exam-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.exam-visual svg {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  max-height: 280px;
+}
+
+.exam-step-num {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--hub-orange);
+  text-transform: uppercase;
+}
+
+.exam-slide h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.exam-slide .exam-summary {
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+/* SVG illustration styling + motion */
+.ill-line { fill: none; stroke: #ff9000; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.ill-soft { fill: none; stroke: rgba(255, 255, 255, 0.25); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ill-fill { fill: rgba(255, 144, 0, 0.12); }
+.ill-dot { fill: #ff9000; }
+
+.anim-breathe { animation: breathe 3s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.anim-raise { animation: raise 3s ease-in-out infinite; transform-box: fill-box; }
+.anim-raise.left { transform-origin: 100% 100%; }
+.anim-raise.right { transform-origin: 0% 100%; }
+.anim-ring { animation: ring 2.4s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+.anim-ring.delay { animation-delay: 1.2s; }
+.anim-orbit { animation: orbit 2.6s linear infinite; transform-origin: 160px 130px; }
+.anim-scan { animation: scan 3.5s ease-in-out infinite; }
+.anim-pop { animation: pop 2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes raise { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-4deg); } }
+@keyframes ring { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes orbit { to { transform: rotate(360deg); } }
+@keyframes scan { 0%, 100% { transform: translateX(-40px); } 50% { transform: translateX(40px); } }
+@keyframes pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* Controls */
+.exam-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.exam-time {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  min-width: 96px;
+}
+
+.exam-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.exam-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  background: var(--bg-tertiary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.exam-btn:hover {
+  border-color: var(--hub-orange);
+}
+
+.exam-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.exam-btn.play {
+  width: 56px;
+  height: 56px;
+  background: var(--hub-orange);
+  border-color: var(--hub-orange);
+  color: #000;
+}
+
+.exam-btn.play:hover {
+  transform: scale(1.06);
+}
+
+.exam-btn.play svg {
+  width: 22px;
+  height: 22px;
+}
+
+.exam-step-label {
+  min-width: 96px;
+  text-align: right;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Spotify-style lyrics panel */
+.lyrics-panel {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem 0;
+  background: #b5520b;
+  transition: background-color 0.8s ease;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+.lyrics-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 0.75rem;
+}
+
+.lyrics-scroll {
+  height: 280px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-bottom: 140px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 24px, #000 75%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24px, #000 75%, transparent 100%);
+}
+
+.lyrics-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.lyrics-list {
+  padding-top: 16px;
+  transition: opacity 0.35s ease, transform 0.45s ease;
+}
+
+.lyrics-list.is-swapping {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.lyric-line {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: clamp(1.25rem, 3vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.3px;
+  color: rgba(0, 0, 0, 0.55);
+  padding: 0.35rem 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: color 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease;
+  transform-origin: left center;
+}
+
+.lyric-line:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lyric-line.is-past {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.lyric-line.is-active {
+  color: #fff;
+  transform: scale(1.03);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* Completion overlay */
+.exam-done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(10, 10, 12, 0.94);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s;
+  z-index: 5;
+}
+
+.exam-done.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.exam-done h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  letter-spacing: 1px;
+  color: #fff;
+  line-height: 1;
+  margin: 0;
+}
+
+.exam-done p {
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.exam-done-actions {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.exam-done-actions a,
+.exam-done-actions button {
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-done-primary {
+  background: var(--hub-orange);
+  color: #000 !important;
+  border: none;
+}
+
+.btn-done-primary:hover {
+  transform: scale(1.04);
+}
+
+.btn-done-outline {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: #ddd;
+}
+
+.btn-done-outline:hover {
+  border-color: var(--hub-orange);
+  color: #fff;
+}
+
+.exam-disclaimer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 1.5rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .exam-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .exam-main {
+    padding: 0 1rem 2rem;
+  }
+
+  .exam-heading {
+    margin: 0.25rem 0 1rem;
+  }
+
+  .exam-heading p {
+    font-size: 0.85rem;
+  }
+
+  .exam-stage {
+    height: 300px;
+  }
+
+  .exam-slide {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 0.5rem;
+    padding: 1rem 1.1rem 1.25rem;
+    text-align: center;
+  }
+
+  .exam-visual svg {
+    max-height: 170px;
+  }
+
+  .exam-slide h2 {
+    margin: 0.25rem 0 0.35rem;
+  }
+
+  .exam-slide .exam-summary {
+    font-size: 0.85rem;
+  }
+
+  .exam-time,
+  .exam-step-label {
+    min-width: 68px;
+    font-size: 0.78rem;
+  }
+
+  .lyrics-panel {
+    padding: 1.1rem 1.25rem 0;
+  }
+
+  .lyrics-scroll {
+    height: 240px;
+    padding-bottom: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exam-visual * {
+    animation: none !important;
+  }
+}
