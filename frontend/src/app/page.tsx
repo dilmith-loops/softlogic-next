@@ -287,31 +287,36 @@ export default function HomePage() {
               {videos.map((video, index) => {
                 const thumbIndex = (index % 10) + 1;
                 return (
-                  <div key={video.id} className="video-card">
-                    <div className="thumbnail-wrapper">
+                  <div
+                    key={video.id}
+                    className="video-card"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Play ${video.title}`}
+                    onClick={() => handleEnterFromAgeGate()}
+                  >
+                    <div className="thumbnail-container">
                       <img
                         src={`/images/thumb_${thumbIndex}.jpg`}
                         alt={video.title}
+                        className="thumbnail-svg"
                         loading="lazy"
-                        className="video-thumb-img"
                       />
                       <span className="duration-badge">{video.duration}</span>
-                      {video.badge && <span className="video-badge-pill">{video.badge}</span>}
-                    </div>
-                    <div className="video-card-body">
-                      <div className="card-avatar-col">
-                        <div className="channel-avatar">{video.icon || '🩺'}</div>
+                      <span className="quality-pill-thumb">4K HD</span>
+                      <div className="hover-play-overlay">
+                        <div className="hover-play-icon">▶</div>
                       </div>
-                      <div className="card-info-col">
-                        <h3 className="card-title">{video.title}</h3>
-                        <div className="card-author">
-                          <span>{video.author}</span>
-                        </div>
-                        <div className="card-meta-row">
-                          <span className="card-views">👁️ {video.views}</span>
-                          <span className="meta-separator">•</span>
-                          <span className="card-rating">👍 {video.rating}%</span>
-                        </div>
+                    </div>
+                    <div className="card-details">
+                      <h3 className="card-title">{video.title}</h3>
+                      <div className="card-author">
+                        <span>{video.author}</span>
+                        {video.authorVerified && <span className="author-check">✓</span>}
+                      </div>
+                      <div className="card-stats">
+                        <span>👁️ {video.views}</span>
+                        <span className="rating">👍 {video.rating}%</span>
                       </div>
                     </div>
                   </div>
