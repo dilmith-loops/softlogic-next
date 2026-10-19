@@ -2,14 +2,14 @@
 # Hostinger (hPanel) Apache / LiteSpeed Configuration for /softlogic
 # ==============================================================================
 Options -Indexes +FollowSymLinks
-DirectoryIndex index.html index.php
+DirectoryIndex index.php index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /softlogic/
 
-  # 1. Direct route for root directory to index.html (LiteSpeed fix)
-  RewriteRule ^$ index.html [L]
+  # 1. Direct route for root directory to index.php
+  RewriteRule ^$ index.php [L]
 
   # 2. Subdirectory page routes
   RewriteRule ^exam/?$ exam/index.html [L]
