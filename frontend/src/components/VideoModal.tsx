@@ -149,60 +149,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
             ✕ Close
           </button>
         </div>
-
-        {/* Live DB Tracking & IP Logging Status Banner */}
-        <div
-          style={{
-            margin: '0.75rem 1.25rem 0',
-            padding: '0.65rem 1rem',
-            background: 'linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.15))',
-            border: '1px solid rgba(16, 185, 129, 0.35)',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-            fontSize: '0.82rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#10b981', fontWeight: 800 }}>✓ Live DB Tracking:</span>
-            <span>
-              Your IP address{' '}
-              <strong style={{ color: 'var(--hub-orange)', fontFamily: 'var(--font-mono)' }}>
-                {recordedData ? recordedData.ip_address : 'Logging...'}
-              </strong>{' '}
-              and view count recorded in MySQL at{' '}
-              <span style={{ color: '#a0a0b0', fontFamily: 'var(--font-mono)' }}>
-                {recordedData ? recordedData.formatted_date : 'Recording...'}
-              </span>
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-            {recordedData && (
-              <span style={{ color: '#38bdf8', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                👁️ Video Views: {recordedData.total_views.toLocaleString()} (Unique IPs: {recordedData.unique_ips})
-              </span>
-            )}
-            <Link
-              href="/admin"
-              style={{
-                background: 'var(--hub-orange)',
-                color: '#000',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '4px',
-                fontWeight: 800,
-                fontSize: '0.74rem',
-                textDecoration: 'none',
-              }}
-            >
-              View in Admin Panel ↗
-            </Link>
-          </div>
-        </div>
-
-        <div className="watch-layout">
+<div className="watch-layout">
           <div className="watch-main">
             {/* HTML5 Video Player Container */}
             <div className="player-wrapper">
