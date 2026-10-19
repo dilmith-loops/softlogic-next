@@ -183,9 +183,15 @@ export async function adminLogin(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    throw new Error(data.message || 'Login failed');
+  let data: any = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Server responded with status ${res.status}. Please check backend database configuration.`);
+  }
+
+  if (!res.ok || !data?.success) {
+    throw new Error(data?.message || 'Invalid administrator credentials');
   }
 
   return data.data; // { token, user }
