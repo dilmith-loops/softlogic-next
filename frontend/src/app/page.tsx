@@ -21,6 +21,8 @@ export default function HomePage() {
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [likes, setLikes] = useState<number>(124000);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
+  const [examConsent, setExamConsent] = useState<boolean>(false);
+  const [consentError, setConsentError] = useState<boolean>(false);
 
   // Flow State: false = Show Root Age Gate with blurred backdrop; true = Video Player Page
   const [hasEntered, setHasEntered] = useState<boolean>(false);
@@ -421,9 +423,7 @@ export default function HomePage() {
                         </div>
                         <div className="uploader-subs">1.4M Medical Awareness Subscribers</div>
                       </div>
-                      <Link href="/exam" className="btn-subscribe btn-exam">
-                        🩺 Take 3-Minute Breast Examination
-                      </Link>
+                      
                     </div>
 
                     {/* Video Description & Key Points */}
@@ -502,6 +502,88 @@ export default function HomePage() {
 
               {/* Recommended Checks Sidebar (Allows switching to any other video) */}
               <div className="watch-sidebar">
+                {/* 3-Minute Breast Examination Action Card above RECOMMENDED CHECKS */}
+                <div
+                  style={{
+                    background: "rgba(255, 144, 0, 0.08)",
+                    border: "1px solid rgba(255, 144, 0, 0.3)",
+                    borderRadius: "8px",
+                    padding: "1rem",
+                    marginBottom: "1.25rem",
+                  }}
+                >
+                  <Link
+                    href="/exam"
+                    className="btn-subscribe btn-exam"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.45rem",
+                      width: "100%",
+                      textAlign: "center",
+                      padding: "0.85rem 1rem",
+                      fontSize: "0.92rem",
+                      fontWeight: 800,
+                      textDecoration: "none",
+                      opacity: examConsent ? 1 : 0.65,
+                      cursor: examConsent ? "pointer" : "not-allowed",
+                      transition: "all 0.2s ease",
+                      boxShadow: examConsent ? "0 0 20px rgba(255, 144, 0, 0.4)" : "none",
+                    }}
+                    onClick={(e) => {
+                      if (!examConsent) {
+                        e.preventDefault();
+                        setConsentError(true);
+                      }
+                    }}
+                  >
+                    🩺 Take 3-Minute Breast Examination
+                  </Link>
+
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.55rem",
+                      marginTop: "0.75rem",
+                      cursor: "pointer",
+                      userSelect: "none",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={examConsent}
+                      onChange={(e) => {
+                        setExamConsent(e.target.checked);
+                        if (e.target.checked) setConsentError(false);
+                      }}
+                      style={{
+                        accentColor: "var(--hub-orange)",
+                        width: "15px",
+                        height: "15px",
+                        marginTop: "2px",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.78rem",
+                        lineHeight: 1.4,
+                        color: consentError ? "#fca5a5" : "var(--text-secondary)",
+                      }}
+                    >
+                      I confirm I am 18+ and consent to begin the guided self-examination routine.
+                    </span>
+                  </label>
+
+                  {consentError && (
+                    <div style={{ fontSize: "0.74rem", color: "#ef4444", marginTop: "0.35rem" }}>
+                      * Please check the consent box to proceed to the examination.
+                    </div>
+                  )}
+                </div>
+
                 <h3 className="sidebar-heading">RECOMMENDED CHECKS</h3>
                 <div className="related-videos-list">
                   {related.map((item) => (
