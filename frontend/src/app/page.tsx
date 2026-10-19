@@ -347,7 +347,7 @@ export default function HomePage() {
               }}
             >
               <div className="modal-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Link href="/" style={{ textDecoration: 'none' }}>
+                <Link href="/" className="site-logo-badge" style={{ textDecoration: 'none', fontSize: '1.4rem' }}>
                   <span className="logo-text">Check</span>
                   <span className="hub-pill">Hub</span>
                 </Link>

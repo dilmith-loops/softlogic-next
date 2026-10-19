@@ -180,9 +180,11 @@ export const VideoModal: React.FC<VideoModalProps> = ({
       <div className="video-modal-dialog">
         {/* Modal Header */}
         <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="modal-brand">
-            <span className="logo-text">Check</span>
-            <span className="hub-pill">Hub</span>
+          <div className="modal-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Link href="/" className="site-logo-badge" style={{ textDecoration: 'none', fontSize: '1.4rem' }}>
+              <span className="logo-text">Check</span>
+              <span className="hub-pill">Hub</span>
+            </Link>
             <span className="modal-title-pill">NOW PLAYING: AWARENESS SPECIAL</span>
           </div>
           

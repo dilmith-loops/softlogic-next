@@ -1441,7 +1441,8 @@ body:has(#ageGateModal:not(.fade-out):not([style*="display: none"])) {
 }
 
 .modal-brand .logo-text {
-  margin-right: -0.85rem; /* keep "Check" snug against the pill despite the flex gap */
+  margin-right: 0 !important;
+  padding-right: 4px;
 }
 
 .modal-title-pill {

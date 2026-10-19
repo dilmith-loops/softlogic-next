@@ -593,9 +593,11 @@ export default function AdminDashboardPage() {
         <div className="modal-overlay" style={{ display: 'flex' }}>
           <div className="video-modal-dialog" style={{ maxWidth: '520px' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="modal-brand">
-                <span className="logo-text">Check</span>
-                <span className="hub-pill">Hub</span>
+              <div className="modal-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div className="site-logo-badge" style={{ fontSize: '1.4rem' }}>
+                  <span className="logo-text">Check</span>
+                  <span className="hub-pill">Hub</span>
+                </div>
                 <span className="modal-title-pill">REGISTER ADMIN (MYSQL DB)</span>
               </div>
               <button
