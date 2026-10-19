@@ -23,7 +23,7 @@ export default function HomePage() {
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [likes, setLikes] = useState<number>(0);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
-  const [examConsent, setExamConsent] = useState<boolean>(false);
+  const [examConsent, setExamConsent] = useState<boolean>(true);
   const [consentError, setConsentError] = useState<boolean>(false);
 
   // Flow State: false = Show Root Age Gate with blurred backdrop; true = Video Player Page

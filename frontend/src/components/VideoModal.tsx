@@ -30,7 +30,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [likes, setLikes] = useState<number>(0);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
-  const [examConsent, setExamConsent] = useState<boolean>(false);
+  const [examConsent, setExamConsent] = useState<boolean>(true);
   const [consentError, setConsentError] = useState<boolean>(false);
   const [comments, setComments] = useState<Array<{ name: string; time: string; text: string; likes: number }>>([
     {
