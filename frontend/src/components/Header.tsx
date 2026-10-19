@@ -89,10 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="btn-icon">📢</span>
             <span>Share</span>
           </button>
-          <Link href="/admin" className="action-btn" style={{ background: 'rgba(255, 144, 0, 0.12)', border: '1px solid rgba(255, 144, 0, 0.35)', color: 'var(--hub-orange)' }}>
-            <span className="btn-icon">🔐</span>
-            <span>Admin</span>
-          </Link>
+          
         </div>
       </div>
     </header>

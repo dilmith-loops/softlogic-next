@@ -335,21 +335,7 @@ export default function HomePage() {
                   <span className="btn-icon">📢</span>
                   <span>Share</span>
                 </button>
-                <Link
-                  href="/admin"
-                  className="action-btn"
-                  style={{
-                    background: 'rgba(255, 144, 0, 0.12)',
-                    border: '1px solid rgba(255, 144, 0, 0.35)',
-                    color: 'var(--hub-orange)',
-                    padding: '0.45rem 0.85rem',
-                    fontSize: '0.85rem',
-                    textDecoration: 'none',
-                  }}
-                >
-                  <span className="btn-icon">🔐</span>
-                  <span>Admin</span>
-                </Link>
+                
               </div>
             </div>
 

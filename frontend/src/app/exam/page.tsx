@@ -160,9 +160,7 @@ export default function ExamPage() {
           <span className="logo-text">Check</span>
           <span className="hub-pill">Hub</span>
         </div>
-        <Link href="/admin" className="exam-back" style={{ borderColor: 'rgba(255, 144, 0, 0.4)', color: 'var(--hub-orange)' }}>
-          Admin Panel ↗
-        </Link>
+        
       </header>
 
       <main className="exam-main">
