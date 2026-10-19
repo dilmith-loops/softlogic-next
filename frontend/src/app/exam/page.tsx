@@ -158,6 +158,49 @@ export default function ExamPage() {
   // Active line calculation
   const activeLine = Math.min(5, Math.floor(elapsed / LINE_MS));
 
+  // Stop background video and broadcast exam active status across all tabs
+  useEffect(() => {
+    // 1. Immediately pause any video or audio elements in current document
+    document.querySelectorAll('video, audio').forEach((media) => {
+      try {
+        (media as HTMLMediaElement).pause();
+      } catch (err) {
+        console.warn('Error pausing media element:', err);
+      }
+    });
+
+    // 2. Set localStorage flag so other tabs know the user is in the exam
+    try {
+      localStorage.setItem('checkhub_in_exam', 'true');
+    } catch {}
+
+    // 3. Broadcast across tabs via BroadcastChannel
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('checkhub_exam_sync');
+        channel.postMessage({ type: 'EXAM_STARTED' });
+      }
+    } catch {}
+
+    // Send a periodic heartbeat pulse every 1.5 seconds while on the exam page
+    const pulseInterval = setInterval(() => {
+      try {
+        localStorage.setItem('checkhub_in_exam', 'true');
+        channel?.postMessage({ type: 'EXAM_STARTED' });
+      } catch {}
+    }, 1500);
+
+    return () => {
+      clearInterval(pulseInterval);
+      try {
+        localStorage.removeItem('checkhub_in_exam');
+        channel?.postMessage({ type: 'EXAM_ENDED' });
+        channel?.close();
+      } catch {}
+    };
+  }, []);
+
   // Go to specific step
   const goToStep = useCallback((i: number) => {
     const validIdx = Math.max(0, Math.min(STEPS.length - 1, i));

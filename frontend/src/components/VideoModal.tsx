@@ -48,6 +48,46 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   const videoPlayerRef = useRef<HTMLVideoElement | null>(null);
 
   // When modal opens or video changes, record view in MySQL DB with user IP and timestamp
+  // Listen for exam active events across tabs to pause video playback
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null;
+
+    const pauseVideo = () => {
+      if (videoPlayerRef.current && !videoPlayerRef.current.paused) {
+        videoPlayerRef.current.pause();
+      }
+    };
+
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        channel = new BroadcastChannel("checkhub_exam_sync");
+        channel.onmessage = (e) => {
+          if (e.data?.type === "EXAM_STARTED") {
+            pauseVideo();
+          }
+        };
+      }
+    } catch {}
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "checkhub_in_exam" && e.newValue === "true") {
+        pauseVideo();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    if (typeof window !== "undefined" && localStorage.getItem("checkhub_in_exam") === "true") {
+      pauseVideo();
+    }
+
+    return () => {
+      try {
+        channel?.close();
+      } catch {}
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isOpen || !video) return;
 
@@ -71,7 +111,10 @@ export const VideoModal: React.FC<VideoModalProps> = ({
 
     logPlay();
 
-    // Reset video player time and play
+    // Reset video player time and play if not in exam
+    if (typeof window !== "undefined" && localStorage.getItem("checkhub_in_exam") === "true") {
+      return;
+    }
     if (videoPlayerRef.current) {
       videoPlayerRef.current.currentTime = 0;
       videoPlayerRef.current.play().catch(() => {
@@ -336,7 +379,14 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                       if (!examConsent) {
                         e.preventDefault();
                         setConsentError(true);
+                        return;
                       }
+                      if (videoPlayerRef.current) {
+                        videoPlayerRef.current.pause();
+                      }
+                      try {
+                        localStorage.setItem("checkhub_in_exam", "true");
+                      } catch {}
                     }}
                   >
                     🩺 Take 3-Minute Breast Examination
