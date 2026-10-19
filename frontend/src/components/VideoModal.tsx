@@ -374,7 +374,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                         color: consentError ? "#fca5a5" : "var(--text-secondary)",
                       }}
                     >
-                      I confirm I am 18+ and consent to begin the guided self-examination routine.
+                      I understand the importance of raising awareness about breast cancer and women’s health, and I commit to sharing this important message with my loved ones.
                     </span>
                   </label>
 
