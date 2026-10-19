@@ -449,7 +449,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                 >
                   <div className="related-thumb">
                     <img
-                      src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 10) + 1}.jpg`}
+                      src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 12) + 1}.jpg`}
                       alt={item.title}
                     />
                     <span className="duration-badge">{item.duration}</span>

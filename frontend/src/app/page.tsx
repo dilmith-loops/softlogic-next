@@ -285,7 +285,7 @@ export default function HomePage() {
             </div>
             <div className="video-grid">
               {videos.map((video, index) => {
-                const thumbIndex = (index % 10) + 1;
+                const thumbIndex = (index % 12) + 1;
                 return (
                   <div
                     key={video.id}
@@ -651,7 +651,7 @@ export default function HomePage() {
                     >
                       <div className="related-thumb">
                         <img
-                          src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 10) + 1}.jpg`}
+                          src={`/images/thumb_${(parseInt(item.id.replace('vid-', '')) % 12) + 1}.jpg`}
                           alt={item.title}
                         />
                         <span className="duration-badge">{item.duration}</span>
