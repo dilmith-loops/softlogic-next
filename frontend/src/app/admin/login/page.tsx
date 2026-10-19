@@ -90,15 +90,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="login-db-notice">
-          <strong>Database Authentication Notice:</strong>
-          <br />
-          Credentials are authenticated directly against MySQL (<code>checkhub_db.users</code>). They are not hardcoded and not stored in <code>.env</code>.
-          <br />
-          Default seeded admin: <code>admin@checkhub.org</code> / <code>Admin@CheckHub2026!</code>
-          <br />
-          CLI Command to create/update admins: <code>php artisan app:create-admin</code>
-        </div>
+
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
           <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textDecoration: 'none' }}>
