@@ -13,8 +13,10 @@ import {
   getAdminExamStarts,
   adminLogout,
   createAdminUser,
+  updateAdminProfile,
   formatSriLankanDateTime,
 } from '@/lib/api';
+import { EyeIcon, EyeOffIcon } from '@/components/PasswordToggleIcons';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -44,6 +46,16 @@ export default function AdminDashboardPage() {
   const [adminPassword, setAdminPassword] = useState('');
   const [adminMsg, setAdminMsg] = useState<{ text: string; isError: boolean } | null>(null);
   const [creatingAdmin, setCreatingAdmin] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+
+  // Edit Profile Modal State
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profilePassword, setProfilePassword] = useState('');
+  const [showProfilePassword, setShowProfilePassword] = useState(false);
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [profileMsg, setProfileMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Verify auth on mount
   useEffect(() => {
@@ -190,6 +202,35 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleUpdateProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !currentUser) return;
+    setUpdatingProfile(true);
+    setProfileMsg(null);
+
+    try {
+      const res = await updateAdminProfile(token, {
+        id: currentUser.id,
+        name: profileName,
+        email: profileEmail,
+        password: profilePassword.trim() ? profilePassword : undefined,
+      });
+
+      const updatedUser = res.data.user;
+      setCurrentUser(updatedUser);
+      localStorage.setItem('checkhub_admin_user', JSON.stringify(updatedUser));
+      setProfileMsg({ text: '✓ Profile updated successfully!', isError: false });
+      setProfilePassword('');
+    } catch (err: unknown) {
+      setProfileMsg({
+        text: err instanceof Error ? err.message : 'Failed to update profile',
+        isError: true,
+      });
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     if (typeof navigator !== 'undefined') {
       navigator.clipboard.writeText(text);
@@ -222,12 +263,43 @@ export default function AdminDashboardPage() {
           </Link>
 
           {currentUser && (
-            <div className="admin-user-pill">
-              <div className="admin-avatar">{currentUser.name.charAt(0).toUpperCase()}</div>
-              <div className="admin-user-meta">
-                <span className="admin-user-name">{currentUser.name}</span>
-                <span className="admin-user-role">{currentUser.email} • {currentUser.role}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <div
+                className="admin-user-pill"
+                onClick={() => {
+                  setProfileName(currentUser.name);
+                  setProfileEmail(currentUser.email);
+                  setProfilePassword('');
+                  setProfileMsg(null);
+                  setShowProfilePassword(false);
+                  setIsEditProfileOpen(true);
+                }}
+                style={{ cursor: 'pointer' }}
+                title="Click to edit administrator profile"
+              >
+                <div className="admin-avatar">{currentUser.name.charAt(0).toUpperCase()}</div>
+                <div className="admin-user-meta">
+                  <span className="admin-user-name">{currentUser.name}</span>
+                  <span className="admin-user-role">{currentUser.email} • {currentUser.role}</span>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileName(currentUser.name);
+                  setProfileEmail(currentUser.email);
+                  setProfilePassword('');
+                  setProfileMsg(null);
+                  setShowProfilePassword(false);
+                  setIsEditProfileOpen(true);
+                }}
+                className="admin-btn admin-btn-secondary"
+                style={{ fontSize: '0.8rem', padding: '0.45rem 0.75rem', gap: '0.35rem' }}
+                title="Edit your administrator name, email, or password"
+              >
+                ✏️ Edit Profile
+              </button>
             </div>
           )}
 
@@ -945,25 +1017,50 @@ export default function AdminDashboardPage() {
                   >
                     Password
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="admin-form-input"
-                    style={{
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      background: 'rgba(22, 22, 30, 0.95)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      borderRadius: '8px',
-                      padding: '0.75rem 1rem',
-                      color: '#ffffff',
-                      fontSize: '0.92rem',
-                      outline: 'none',
-                    }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showAdminPassword ? 'text' : 'password'}
+                      required
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="admin-form-input"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        background: 'rgba(22, 22, 30, 0.95)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '8px',
+                        padding: '0.75rem 2.8rem 0.75rem 1rem',
+                        color: '#ffffff',
+                        fontSize: '0.92rem',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminPassword(!showAdminPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: showAdminPassword ? 'var(--hub-orange)' : 'rgba(255, 255, 255, 0.45)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'color 0.2s',
+                      }}
+                      title={showAdminPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showAdminPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showAdminPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
@@ -985,6 +1082,269 @@ export default function AdminDashboardPage() {
                   }}
                 >
                   {creatingAdmin ? 'Creating Account...' : 'Create Administrator Account'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    
+      {/* EDIT PROFILE MODAL */}
+      {isEditProfileOpen && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsEditProfileOpen(false);
+              setProfileMsg(null);
+            }
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              background: '#131318',
+              border: '1px solid rgba(255, 144, 0, 0.35)',
+              borderRadius: '14px',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 144, 0, 0.15)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div className="site-logo-badge" style={{ fontSize: '1.2rem' }}>
+                  <span className="logo-text">Check</span>
+                  <span className="hub-pill">Hub</span>
+                </div>
+                <span
+                  style={{
+                    background: 'rgba(255, 144, 0, 0.15)',
+                    color: 'var(--hub-orange)',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    padding: '0.25rem 0.6rem',
+                    borderRadius: '4px',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  EDIT PROFILE
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditProfileOpen(false);
+                  setProfileMsg(null);
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  transition: 'background 0.2s',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)')}
+                onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '1.75rem 1.5rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.35rem', lineHeight: 1.5 }}>
+                Update your administrator credentials and security settings.
+              </p>
+
+              {profileMsg && (
+                <div
+                  className={`admin-alert-box ${profileMsg.isError ? 'admin-alert-error' : 'admin-alert-success'}`}
+                  style={{ marginBottom: '1.25rem' }}
+                >
+                  <span>{profileMsg.isError ? '⚠️' : '✓'}</span>
+                  <span>{profileMsg.text}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleUpdateProfileSubmit}>
+                <div style={{ marginBottom: '1.15rem' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      marginBottom: '0.45rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="e.g. System Administrator"
+                    className="admin-form-input"
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'rgba(22, 22, 30, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      color: '#ffffff',
+                      fontSize: '0.92rem',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '1.15rem' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      marginBottom: '0.45rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    placeholder="e.g. admin@softlogic.lk"
+                    className="admin-form-input"
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'rgba(22, 22, 30, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      color: '#ffffff',
+                      fontSize: '0.92rem',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+                    <label
+                      style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: 'var(--text-secondary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      New Password
+                    </label>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>(Optional)</span>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showProfilePassword ? 'text' : 'password'}
+                      value={profilePassword}
+                      onChange={(e) => setProfilePassword(e.target.value)}
+                      placeholder="Leave empty to keep current password"
+                      className="admin-form-input"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        background: 'rgba(22, 22, 30, 0.95)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '8px',
+                        padding: '0.75rem 2.8rem 0.75rem 1rem',
+                        color: '#ffffff',
+                        fontSize: '0.92rem',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowProfilePassword(!showProfilePassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: showProfilePassword ? 'var(--hub-orange)' : 'rgba(255, 255, 255, 0.45)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'color 0.2s',
+                      }}
+                      title={showProfilePassword ? 'Hide password' : 'Show password'}
+                      aria-label={showProfilePassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showProfilePassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={updatingProfile}
+                  className="btn-subscribe"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    padding: '0.85rem',
+                    fontSize: '0.92rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: updatingProfile ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 20px rgba(255, 144, 0, 0.35)',
+                  }}
+                >
+                  {updatingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
                 </button>
               </form>
             </div>

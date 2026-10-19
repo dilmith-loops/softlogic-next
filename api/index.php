@@ -335,7 +335,58 @@ try {
         exit;
     }
 
-    // 8. Admin Export CSV (GET /admin/export)
+    // 8. Update Admin Profile (POST /admin/profile)
+    if (($uri === "admin/profile" || $uri === "admin/profile/") && $method === "POST") {
+        $raw = file_get_contents("php://input");
+        $input = json_decode($raw, true) ?: [];
+        $userId = (int)($input["id"] ?? 0);
+        $name = trim($input["name"] ?? "");
+        $email = trim($input["email"] ?? "");
+        $password = trim($input["password"] ?? "");
+
+        if (!$userId || !$name || !$email) {
+            http_response_code(422);
+            echo json_encode(["success" => false, "message" => "User ID, name and email are required"]);
+            exit;
+        }
+
+        $check = $db->prepare("SELECT COUNT(*) FROM users WHERE email = ? AND id != ?");
+        $check->execute([$email, $userId]);
+        if ($check->fetchColumn() > 0) {
+            http_response_code(409);
+            echo json_encode(["success" => false, "message" => "Email address is already in use by another account"]);
+            exit;
+        }
+
+        if ($password !== "") {
+            $hashed = password_hash($password, PASSWORD_BCRYPT);
+            $stmt = $db->prepare("UPDATE users SET name = ?, email = ?, password = ?, updated_at = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $hashed, $sriLankaNow, $userId]);
+        } else {
+            $stmt = $db->prepare("UPDATE users SET name = ?, email = ?, updated_at = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $sriLankaNow, $userId]);
+        }
+
+        $stmt = $db->prepare("SELECT id, name, email, role FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $updatedUser = $stmt->fetch();
+
+        echo json_encode([
+            "success" => true,
+            "message" => "Administrator profile updated successfully",
+            "data" => [
+                "user" => [
+                    "id" => (int)$updatedUser["id"],
+                    "name" => $updatedUser["name"],
+                    "email" => $updatedUser["email"],
+                    "role" => $updatedUser["role"],
+                ]
+            ]
+        ]);
+        exit;
+    }
+
+    // 9. Admin Export CSV (GET /admin/export)
     if ($uri === "admin/export" && $method === "GET") {
         $type = $_GET["type"] ?? "views";
         if ($type === "exam") {
@@ -363,7 +414,7 @@ try {
         exit;
     }
 
-    // 9. Video Listing (GET /videos) - Return real views for each video
+    // 10. Video Listing (GET /videos) - Return real views for each video
     if ($uri === "videos" || $uri === "videos/") {
         $knownVideos = [
             ["id" => "vid-11", "title" => "Morning Routine: 3 Minutes That Could Save Your Life", "category" => "self-exam", "videoSrc" => "breast_cancer_awareness.mp4"],

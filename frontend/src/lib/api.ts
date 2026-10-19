@@ -385,3 +385,28 @@ export async function createAdminUser(token: string, payload: { name: string; em
 
   return json.data;
 }
+
+/**
+ * Update Administrator Profile (Name, Email, optional Password)
+ */
+export async function updateAdminProfile(
+  token: string,
+  payload: { id: number; name: string; email: string; password?: string }
+): Promise<{ success: boolean; data: { user: AdminUser }; message?: string }> {
+  const res = await fetch(`${API_BASE_URL}/admin/profile`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.message || 'Failed to update profile');
+  }
+
+  return json;
+}

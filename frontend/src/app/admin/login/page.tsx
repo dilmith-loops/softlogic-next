@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { adminLogin } from '@/lib/api';
+import { EyeIcon, EyeOffIcon } from '@/components/PasswordToggleIcons';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +20,6 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      // Authenticates dynamically against MySQL users table (not hardcoded, not in .env)
       const data = await adminLogin(email, password);
       localStorage.setItem('checkhub_admin_token', data.token);
       localStorage.setItem('checkhub_admin_user', JSON.stringify(data.user));
@@ -59,7 +60,7 @@ export default function AdminLoginPage() {
               type="email"
               required
               className="admin-form-input"
-              placeholder="e.g. admin@checkhub.org"
+              placeholder="e.g. admin@softlogic.lk"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"
@@ -68,16 +69,42 @@ export default function AdminLoginPage() {
 
           <div className="admin-form-group">
             <label htmlFor="adminPassword">Password</label>
-            <input
-              id="adminPassword"
-              type="password"
-              required
-              className="admin-form-input"
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                id="adminPassword"
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="admin-form-input"
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                style={{ paddingRight: '2.8rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: showPassword ? 'var(--hub-orange)' : 'rgba(255, 255, 255, 0.45)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s',
+                }}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -86,11 +113,9 @@ export default function AdminLoginPage() {
             className="admin-btn admin-btn-primary admin-btn-block"
             style={{ marginTop: '1.5rem' }}
           >
-            {loading ? 'Authenticating via MySQL...' : 'Sign In to Admin Panel →'}
+            {loading ? 'Authenticating...' : 'Sign In to Admin Panel →'}
           </button>
         </form>
-
-
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
           <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textDecoration: 'none' }}>
