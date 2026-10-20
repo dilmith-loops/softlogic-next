@@ -23,6 +23,7 @@ backend/bootstrap/cache/*
 
 # Logs & temp
 *.log
+*.sqlite
 .DS_Store
 .vscode/
 .idea/

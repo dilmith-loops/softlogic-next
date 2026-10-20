@@ -70,13 +70,29 @@ function getDb(): PDO {
                 created_at DATETIME,
                 updated_at DATETIME
             );
+
+            CREATE TABLE IF NOT EXISTS admin_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token TEXT NOT NULL UNIQUE,
+                created_at DATETIME NOT NULL,
+                expires_at DATETIME NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS login_attempts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip_address TEXT NOT NULL,
+                attempted_at DATETIME NOT NULL
+            );
         ");
 
         $check = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
-        $check->execute(["admin@softlogic.lk"]);
+        $adminEmail = getenv("ADMIN_EMAIL") ?: "admin@softlogic.lk";
+        $check->execute([$adminEmail]);
         if ($check->fetchColumn() == 0) {
+            $initialPass = getenv("ADMIN_INITIAL_PASSWORD") ?: ("Admin@" . bin2hex(random_bytes(4)) . "!");
             $insert = $pdo->prepare("INSERT INTO users (name, email, password, role, created_at, updated_at) VALUES (?, ?, ?, 'admin', datetime('now'), datetime('now'))");
-            $insert->execute(["System Administrator", "admin@softlogic.lk", password_hash("Admin@CheckHub2026", PASSWORD_BCRYPT)]);
+            $insert->execute(["System Administrator", $adminEmail, password_hash($initialPass, PASSWORD_BCRYPT)]);
         }
 
         return $pdo;
@@ -118,13 +134,33 @@ function getDb(): PDO {
                 `created_at` TIMESTAMP NULL,
                 `updated_at` TIMESTAMP NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+            CREATE TABLE IF NOT EXISTS `admin_tokens` (
+                `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `user_id` BIGINT UNSIGNED NOT NULL,
+                `token` VARCHAR(64) NOT NULL UNIQUE,
+                `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `expires_at` TIMESTAMP NOT NULL,
+                INDEX `idx_token` (`token`),
+                INDEX `idx_user_id` (`user_id`),
+                INDEX `idx_expires` (`expires_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+            CREATE TABLE IF NOT EXISTS `login_attempts` (
+                `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `ip_address` VARCHAR(45) NOT NULL,
+                `attempted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX `idx_ip_attempt` (`ip_address`, `attempted_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
+        $adminEmail = getenv("ADMIN_EMAIL") ?: "admin@softlogic.lk";
         $check = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `email` = ?");
-        $check->execute(["admin@softlogic.lk"]);
+        $check->execute([$adminEmail]);
         if ($check->fetchColumn() == 0) {
+            $initialPass = getenv("ADMIN_INITIAL_PASSWORD") ?: ("Admin@" . bin2hex(random_bytes(4)) . "!");
             $insert = $pdo->prepare("INSERT INTO `users` (`name`, `email`, `password`, `role`, `created_at`, `updated_at`) VALUES (?, ?, ?, 'admin', NOW(), NOW())");
-            $insert->execute(["System Administrator", "admin@softlogic.lk", password_hash("Admin@CheckHub2026", PASSWORD_BCRYPT)]);
+            $insert->execute(["System Administrator", $adminEmail, password_hash($initialPass, PASSWORD_BCRYPT)]);
         }
     } catch (Throwable $t) {
         // Table may already exist

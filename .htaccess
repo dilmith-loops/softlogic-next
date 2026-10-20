@@ -1,44 +1,64 @@
 # ==============================================================================
 # Hostinger (hPanel) Apache / LiteSpeed Configuration for /softlogic
 # ==============================================================================
-Options -Indexes +FollowSymLinks
+Options -Indexes -MultiViews +FollowSymLinks
 DirectoryIndex index.php index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /softlogic/
 
-  # 1. Direct route for root directory to index.php
+  # Pass Authorization header to PHP in CGI/FastCGI/LiteSpeed
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # 1. Block Access to Hidden Files, Sensitive Directories & Development Artifacts
+  # Block dotfiles (.env, .git, etc.)
+  RewriteRule (^|/)\. - [F,L]
+
+  # Block direct web access to raw source directories
+  RewriteRule ^(backend|frontend|storage|tests|vendor)/ - [F,L]
+
+  # Block direct access to database dumps, lockfiles, configs, and source files
+  RewriteRule \.(sql|sqlite|lock|xml|md|log|env|yml|yaml|ts|tsx|sh)$ - [F,L]
+  RewriteRule ^(package|composer)\.(json|lock)$ - [F,L]
+
+  # 2. Direct route for root directory to index.php
   RewriteRule ^$ index.php [L]
 
-  # 2. Subdirectory page routes
+  # 3. Subdirectory page routes
   RewriteRule ^exam/?$ exam/index.html [L]
   RewriteRule ^admin/?$ admin/index.html [L]
   RewriteRule ^admin/login/?$ admin/login/index.html [L]
 
-  # 3. Route API requests to api/index.php
+  # 4. Route API requests to api/index.php
   RewriteRule ^api/(.*)$ api/index.php [L,QSA]
   RewriteRule ^api/?$ api/index.php [L,QSA]
 
-  # 4. Serve existing files directly
+  # 5. Serve existing static assets directly (CSS, JS, images, videos)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 5. Dual-path fallback for images or media
+  # 6. Dual-path fallback for images or media
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{DOCUMENT_ROOT}/softlogic/images/$1 -f
   RewriteRule ^([^/]+\.(jpg|jpeg|png|svg|webp|ico))$ images/$1 [L]
 
-  # 6. Fallback to index.html for Next.js SPA client-side routing
+  # 7. Fallback to index.html for Next.js SPA client-side routing
   RewriteRule ^ index.html [L]
 </IfModule>
 
-# Byte-Range Streaming Support for Videos
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# Byte-Range Streaming Support & Strict Security Headers
 <IfModule mod_headers.c>
   Header set Accept-Ranges bytes
   Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header unset X-Powered-By
 </IfModule>
 
 # Caching & MIME Types for High-Performance Streaming

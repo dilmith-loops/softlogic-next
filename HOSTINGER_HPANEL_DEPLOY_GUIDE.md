@@ -77,8 +77,7 @@ Visit the live campaign in your browser:
 - **Video Streaming with Byte-Range:** Pre-configured via `.htaccess` with `Accept-Ranges bytes` for smooth instant playback on mobile and desktop browsers.
 - **Self-Examination Player:** Accessible at `https://ai.loopsintegrated.co/softlogic/exam/` with interactive step-by-step guidance, synchronized lyrics, and synthesized pulse.
 - **Admin Analytics Dashboard:** Accessible at `https://ai.loopsintegrated.co/softlogic/admin/` with real IP logging, view counts, and CSV export.
-  - Default Admin Email: `admin@softlogic.lk`
-  - Default Password: `Admin@CheckHub2026`
+  - Admin Access: Configured via secure environment variables (`.env`) or set securely during initial database migration.
 
 ---
 
