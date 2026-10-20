@@ -121,19 +121,20 @@ try {
 
     // 6. Public Video Listing (GET /videos)
     if ($uri === "videos" || $uri === "videos/") {
+        $campaignVideoUrl = "https://res.cloudinary.com/mouwqzwi/video/upload/v1792471928/Softlogic_Life_breast_cancer_awareness_month_campaign_V17_EDIT_OPTION_01_rrakxk.mp4";
         $knownVideos = [
-            ["id" => "vid-11", "title" => "Morning Routine: 3 Minutes That Could Save Your Life", "category" => "self-exam", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-1", "title" => "How To Do A Monthly Breast Self-Check (Step-by-Step)", "category" => "self-exam", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-2", "title" => "The 8 Warning Signs You Should Never Ignore", "category" => "symptoms", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-3", "title" => "What Does A Lump Actually Feel Like? (Tactile Guide)", "category" => "self-exam", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-4", "title" => "Breast Density Explained: Why It Matters For Screening", "category" => "anatomy", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-5", "title" => "Male Breast Cancer: Rare But Real (Know The Signs)", "category" => "awareness", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-6", "title" => "Mammogram 101: When To Start & What To Expect", "category" => "screening", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-7", "title" => "Deep Tissue Examination: Lying Down Position", "category" => "self-exam", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-8", "title" => "Myths Busted: Underwire Bras, Deodorant & Other Dangerous Lies", "category" => "myths", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-9", "title" => "Hard vs Soft: How To Feel The Difference On Glandular Tissue", "category" => "self-exam", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-10", "title" => "Under Pressure: Nipple Retraction & Discharge Warning", "category" => "symptoms", "videoSrc" => "breast_cancer_awareness.mp4"],
-            ["id" => "vid-12", "title" => "Young & Active: Why It Doesn't Only Happen To Older People", "category" => "myths", "videoSrc" => "breast_cancer_awareness.mp4"],
+            ["id" => "vid-11", "title" => "Softlogic Life: Change The Conversation — Know The Signs (B.R.S.T)", "category" => "awareness", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-1", "title" => "How To Do A Monthly Breast Self-Check (Step-by-Step)", "category" => "self-exam", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-2", "title" => "The 8 Warning Signs You Should Never Ignore", "category" => "symptoms", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-3", "title" => "What Does A Lump Actually Feel Like? (Tactile Guide)", "category" => "self-exam", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-4", "title" => "Breast Density Explained: Why It Matters For Screening", "category" => "anatomy", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-5", "title" => "Male Breast Cancer: Rare But Real (Know The Signs)", "category" => "awareness", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-6", "title" => "Mammogram 101: When To Start & What To Expect", "category" => "screening", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-7", "title" => "Deep Tissue Examination: Lying Down Position", "category" => "self-exam", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-8", "title" => "Myths Busted: Underwire Bras, Deodorant & Other Dangerous Lies", "category" => "myths", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-9", "title" => "Hard vs Soft: How To Feel The Difference On Glandular Tissue", "category" => "self-exam", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-10", "title" => "Under Pressure: Nipple Retraction & Discharge Warning", "category" => "symptoms", "videoSrc" => $campaignVideoUrl],
+            ["id" => "vid-12", "title" => "Young & Active: Why It Doesn't Only Happen To Older People", "category" => "myths", "videoSrc" => $campaignVideoUrl],
         ];
 
         $vStats = [];

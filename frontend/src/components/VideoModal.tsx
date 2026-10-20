@@ -5,6 +5,7 @@ import { withBase } from '@/lib/basePath';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { VideoItem, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
+import { CAMPAIGN_VIDEO_URL } from '@/lib/videoData';
 
 interface VideoModalProps {
   video: VideoItem | null;
@@ -25,7 +26,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   onOpenReminder,
   onOpenShare,
 }) => {
-  const [activeSrc, setActiveSrc] = useState<string>(() => withBase('/breast_cancer_awareness.mp4'));
+  const [activeSrc, setActiveSrc] = useState<string>(CAMPAIGN_VIDEO_URL);
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [likes, setLikes] = useState<number>(0);
@@ -93,7 +94,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   useEffect(() => {
     if (!isOpen || !video) return;
 
-    const initialSrc = video.videoSrc.startsWith('/') ? video.videoSrc : `/${video.videoSrc}`;
+    const initialSrc = video.videoSrc ? withBase(video.videoSrc) : CAMPAIGN_VIDEO_URL;
     setActiveSrc(initialSrc);
 
     // IP view log triggered only when video play starts
@@ -116,27 +117,6 @@ export const VideoModal: React.FC<VideoModalProps> = ({
 
   if (!isOpen || !video) return null;
 
-  const handleStreamSwitch = async (newSrc: string) => {
-    const formattedSrc = newSrc.startsWith('/') ? newSrc : `/${newSrc}`;
-    setActiveSrc(formattedSrc);
-
-    if (videoPlayerRef.current) {
-      videoPlayerRef.current.src = formattedSrc;
-      videoPlayerRef.current.load();
-      videoPlayerRef.current.play().catch(console.warn);
-    }
-
-    // Re-log switch stream view with IP & timestamp
-    try {
-      const res = await recordView(video.id, `${video.title} (Stream: ${newSrc})`, formattedSrc);
-      if (res && res.success) {
-        setRecordedData(res.data);
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -154,13 +134,6 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   };
 
   const related = allVideos.filter((v) => v.id !== video.id).slice(0, 5);
-
-  const streams = [
-    { label: 'Doctor FAQs & Awareness Guide', src: withBase('/breast_cancer_awareness.mp4'), icon: '📺' },
-    { label: 'Awareness Coalition PSA', src: withBase('/breast_cancer_psa.mp4'), icon: '📢' },
-    { label: 'Clinical Palpation Exam', src: withBase('/breast_exam_video.webm'), icon: '🩺' },
-    { label: 'Healthy Driven PSA', src: withBase('/healthy_driven_breast_cancer.mp4'), icon: '🎗️' },
-  ];
 
   return (
     <div className="modal-overlay" style={{ display: 'flex' }}>
@@ -194,18 +167,25 @@ export const VideoModal: React.FC<VideoModalProps> = ({
               </video>
             </div>
 
-            {/* Awareness Stream Channel Switcher */}
-            <div className="awareness-video-switcher">
-              <span className="switcher-label">📺 Awareness Stream:</span>
-              {streams.map((s) => (
-                <button
-                  key={s.src}
-                  className={`btn-stream-switch ${activeSrc === s.src ? 'active' : ''}`}
-                  onClick={() => handleStreamSwitch(s.src)}
-                >
-                  {s.icon} {s.label}
-                </button>
-              ))}
+            {/* Official Campaign Awareness Stream */}
+            <div
+              className="awareness-video-switcher"
+              style={{
+                background: 'rgba(255, 144, 0, 0.08)',
+                border: '1px solid rgba(255, 144, 0, 0.25)',
+                borderRadius: '6px',
+                padding: '0.5rem 0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <span className="switcher-label" style={{ color: 'var(--hub-orange)', fontWeight: 700 }}>
+                🎗️ Official PSA:
+              </span>
+              <span style={{ fontSize: '0.86rem', color: '#fff', fontWeight: 600 }}>
+                Softlogic Life &amp; WCIC — Breast Cancer Awareness Campaign
+              </span>
             </div>
 
             {/* Video Details */}

@@ -42,7 +42,7 @@ class VideoSeeder extends Seeder
                     'accent_color' => $vid['accentColor'] ?? '#ff9000',
                     'icon' => $vid['icon'] ?? '🩺',
                     'badge' => $vid['badge'] ?? null,
-                    'video_src' => $vid['videoSrc'] ?? 'breast_cancer_awareness.mp4',
+                    'video_src' => $vid['videoSrc'] ?? 'https://res.cloudinary.com/mouwqzwi/video/upload/v1792471928/Softlogic_Life_breast_cancer_awareness_month_campaign_V17_EDIT_OPTION_01_rrakxk.mp4',
                 ]
             );
         }

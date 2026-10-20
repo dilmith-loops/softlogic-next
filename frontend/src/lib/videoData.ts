@@ -1,5 +1,8 @@
 import { VideoItem } from "./api";
 
+export const CAMPAIGN_VIDEO_URL =
+  "https://res.cloudinary.com/mouwqzwi/video/upload/v1792471928/Softlogic_Life_breast_cancer_awareness_month_campaign_V17_EDIT_OPTION_01_rrakxk.mp4";
+
 export const INITIAL_VIDEOS: VideoItem[] = [
   {
     "id": "vid-1",
@@ -26,7 +29,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "🚿",
     "badge": "ESSENTIAL ROUTINE",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-2",
@@ -53,7 +56,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "🪞",
     "badge": "STEP 1 FOUNDATION",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-3",
@@ -80,7 +83,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "🩺",
     "badge": "DOCTOR APPROVED",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-4",
@@ -107,7 +110,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#e07f00",
     "icon": "⚠️",
     "badge": "CRITICAL KNOWLEDGE",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-5",
@@ -134,7 +137,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#3b82f6",
     "icon": "👨",
     "badge": "MEN'S HEALTH",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-6",
@@ -161,7 +164,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#10b981",
     "icon": "🏥",
     "badge": "CLINICAL GUIDE",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-7",
@@ -188,7 +191,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "🛏️",
     "badge": "POSITIONING",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-8",
@@ -215,7 +218,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "💡",
     "badge": "SCIENCE FIRST",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-9",
@@ -242,7 +245,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "🧬",
     "badge": "TACTILE TEST",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-10",
@@ -269,34 +272,34 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#e07f00",
     "icon": "🔍",
     "badge": "SYMPTOM ALERT",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-11",
     "youtubeId": "8c2z6FDeAf8",
-    "title": "Morning Routine: 3 Minutes That Could Save Your Life",
-    "category": "self-exam",
-    "duration": "02:55",
-    "durationSec": 175,
+    "title": "Softlogic Life: Change The Conversation — Know The Signs (B.R.S.T)",
+    "category": "awareness",
+    "duration": "00:48",
+    "durationSec": 48,
     "views": "0 views",
     "viewsCount": 0,
     "rating": 99.9,
-    "date": "6 days ago",
-    "author": "Maya Lin (Stage 1 Survivor) & Dr. Reed",
-    "authorTitle": "Patient Advocate & Surgeon",
+    "date": "Official Campaign",
+    "author": "Softlogic Life & WCIC",
+    "authorTitle": "Women's Health Initiative",
     "authorVerified": true,
-    "description": "Maya found a tiny 1.2cm lump during her routine morning shower. Because she caught it at Stage 1, she required minimal treatment and has been cancer-free for 7 years. In this video, she walks through her monthly 3-minute habit.",
+    "description": "What if Sri Lankans paid that much attention to breasts every day? Breast cancer takes three lives every day in Sri Lanka. Early detection could save over 90% of lives. CheckHub and Softlogic Life urge everyone to recognize the B.R.S.T warning signs: Bump, Redness, Skin changes, and Tip retraction.",
     "keyPoints": [
-      "Set a recurring monthly alarm on your phone (e.g. the 10th of every month).",
-      "Do not obsess or check every single day (hormonal daily fluctuations can create false panic).",
-      "Once a month is the sweet spot for accurate baseline tracking.",
-      "Over 80% of breast cancers are discovered by individuals themselves or their partners!"
+      "B - BUMP: New or persistent lumps or tissue thickening.",
+      "R - REDNESS: Rashes, heat, discoloration or inflammation.",
+      "S - SKIN: Skin dimpling, puckering, or orange-peel texture.",
+      "T - TIP: Nipple inversion, retraction, or abnormal discharge."
     ],
     "animationType": "routine-clock",
     "accentColor": "#ff9000",
-    "icon": "⏰",
-    "badge": "SURVIVOR STORY",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "icon": "🎗️",
+    "badge": "OFFICIAL CAMPAIGN",
+    "videoSrc": CAMPAIGN_VIDEO_URL
   },
   {
     "id": "vid-12",
@@ -323,6 +326,6 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     "accentColor": "#ff9000",
     "icon": "🌱",
     "badge": "UNDER 40 GUIDE",
-    "videoSrc": "breast_cancer_awareness.mp4"
+    "videoSrc": CAMPAIGN_VIDEO_URL
   }
 ];

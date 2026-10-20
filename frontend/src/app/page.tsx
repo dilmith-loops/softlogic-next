@@ -12,14 +12,14 @@ import { SelfCheckModal } from '@/components/SelfCheckModal';
 import { ReminderModal } from '@/components/ReminderModal';
 import { ShareModal } from '@/components/ShareModal';
 import { VideoItem, getVideos, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
-import { INITIAL_VIDEOS } from '@/lib/videoData';
+import { INITIAL_VIDEOS, CAMPAIGN_VIDEO_URL } from '@/lib/videoData';
 
 export default function HomePage() {
   const [videos, setVideos] = useState<VideoItem[]>(INITIAL_VIDEOS);
   const [selectedVideo, setSelectedVideo] = useState<VideoItem>(
     () => INITIAL_VIDEOS.find((v) => v.id === 'vid-11') || INITIAL_VIDEOS[0]
   );
-  const [activeSrc, setActiveSrc] = useState<string>(() => withBase('/breast_cancer_awareness.mp4'));
+  const [activeSrc, setActiveSrc] = useState<string>(CAMPAIGN_VIDEO_URL);
   const [recordedData, setRecordedData] = useState<RecordViewResponse['data'] | null>(null);
   const [likes, setLikes] = useState<number>(0);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
@@ -203,17 +203,6 @@ export default function HomePage() {
     });
   };
 
-  const handleStreamSwitch = (newSrc: string) => {
-    const formattedSrc = withBase(newSrc);
-    setActiveSrc(formattedSrc);
-
-    if (videoPlayerRef.current) {
-      videoPlayerRef.current.src = formattedSrc;
-      videoPlayerRef.current.load();
-      videoPlayerRef.current.play().catch(console.warn);
-    }
-  };
-
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -231,13 +220,6 @@ export default function HomePage() {
   };
 
   const related = videos.filter((v) => v.id !== selectedVideo.id);
-
-  const streams = [
-    { label: 'Doctor FAQs & Awareness Guide', src: withBase('/breast_cancer_awareness.mp4'), icon: '📺' },
-    { label: 'Awareness Coalition PSA', src: withBase('/breast_cancer_psa.mp4'), icon: '📢' },
-    { label: 'Clinical Palpation Exam', src: withBase('/breast_exam_video.webm'), icon: '🩺' },
-    { label: 'Healthy Driven PSA', src: withBase('/healthy_driven_breast_cancer.mp4'), icon: '🎗️' },
-  ];
 
   // Render Examination Action Card with consent checkbox
   const renderExamCard = (isMobile: boolean = false) => (
@@ -503,18 +485,25 @@ export default function HomePage() {
                   </video>
                 </div>
 
-                {/* Awareness Stream Channel Switcher */}
-                <div className="awareness-video-switcher">
-                  <span className="switcher-label">📺 Awareness Stream:</span>
-                  {streams.map((s) => (
-                    <button
-                      key={s.src}
-                      className={`btn-stream-switch ${activeSrc === s.src ? 'active' : ''}`}
-                      onClick={() => handleStreamSwitch(s.src)}
-                    >
-                      {s.icon} {s.label}
-                    </button>
-                  ))}
+                {/* Official Campaign Awareness Stream */}
+                <div
+                  className="awareness-video-switcher"
+                  style={{
+                    background: 'rgba(255, 144, 0, 0.08)',
+                    border: '1px solid rgba(255, 144, 0, 0.25)',
+                    borderRadius: '6px',
+                    padding: '0.5rem 0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span className="switcher-label" style={{ color: 'var(--hub-orange)', fontWeight: 700 }}>
+                    🎗️ Official PSA:
+                  </span>
+                  <span style={{ fontSize: '0.86rem', color: '#fff', fontWeight: 600 }}>
+                    Softlogic Life &amp; WCIC — Breast Cancer Awareness Campaign
+                  </span>
                 </div>
 
                 {/* Video Details */}

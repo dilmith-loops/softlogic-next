@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('accent_color')->default('#ff9000');
             $table->string('icon')->default('🩺');
             $table->string('badge')->nullable();
-            $table->string('video_src')->default('breast_cancer_awareness.mp4');
+            $table->string('video_src', 500)->default('https://res.cloudinary.com/mouwqzwi/video/upload/v1792471928/Softlogic_Life_breast_cancer_awareness_month_campaign_V17_EDIT_OPTION_01_rrakxk.mp4');
             $table->timestamps();
         });
     }
