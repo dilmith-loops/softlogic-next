@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { VideoItem, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
 import { CAMPAIGN_VIDEO_URL } from '@/lib/videoData';
+import { StethoscopeIcon } from '@/components/StethoscopeIcon';
 
 interface VideoModalProps {
   video: VideoItem | null;
@@ -228,7 +229,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
 
                 {/* Uploader Profile */}
                 <div className="uploader-profile">
-                  <div className="uploader-avatar">🩺</div>
+                  <div className="uploader-avatar"><StethoscopeIcon size={22} color="#ffffff" /></div>
                   <div className="uploader-details">
                     <div className="uploader-name">
                       <span>{video.author} - {video.authorTitle}</span>
@@ -293,7 +294,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                   <div className="comments-list">
                     {comments.map((c, i) => (
                       <div key={i} className="comment-item">
-                        <div className="comment-avatar">🩺</div>
+                        <div className="comment-avatar"><StethoscopeIcon size={18} color="#ffffff" /></div>
                         <div className="comment-content">
                           <div className="comment-author-row">
                             <span className="comment-author-name">{c.name}</span>
@@ -358,7 +359,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                       } catch {}
                     }}
                   >
-                    🩺 Take 3-Minute Breast Examination
+                    <StethoscopeIcon size={19} color="#ffffff" style={{ marginRight: '6px' }} /> Take 3-Minute Breast Examination
                   </Link>
 
                   <label

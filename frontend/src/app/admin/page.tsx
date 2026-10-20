@@ -17,6 +17,7 @@ import {
   formatSriLankanDateTime,
 } from '@/lib/api';
 import { EyeIcon, EyeOffIcon } from '@/components/PasswordToggleIcons';
+import { StethoscopeIcon } from '@/components/StethoscopeIcon';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -324,8 +325,8 @@ export default function AdminDashboardPage() {
             <button onClick={handleExportViewsCsv} className="admin-btn admin-btn-secondary">
               📥 Export Views CSV
             </button>
-            <button onClick={handleExportExamCsv} className="admin-btn admin-btn-secondary" style={{ border: '1px solid rgba(124, 31, 184, 0.5)' }}>
-              🩺 Export Exam CSV
+            <button onClick={handleExportExamCsv} className="admin-btn admin-btn-secondary" style={{ border: '1px solid rgba(124, 31, 184, 0.5)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <StethoscopeIcon size={16} color="currentColor" /> Export Exam CSV
             </button>
             <button onClick={() => setIsAddAdminOpen(true)} className="admin-btn admin-btn-primary">
               + Add Admin
@@ -379,7 +380,7 @@ export default function AdminDashboardPage() {
           <div className="admin-metric-card" style={{ borderColor: 'rgba(124, 31, 184, 0.4)' }}>
             <div className="metric-header">
               <span className="metric-label" style={{ color: 'var(--hub-orange)' }}>Consented Exam Starts</span>
-              <span className="metric-icon">🩺</span>
+              <span className="metric-icon"><StethoscopeIcon size={20} color="var(--hub-orange)" /></span>
             </div>
             <div className="metric-value" style={{ color: 'var(--hub-orange)' }}>
               {stats ? (stats.overview.total_exam_starts ?? 0).toLocaleString() : '0'}
@@ -427,9 +428,9 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setActiveTab('exams')}
             className={`admin-btn ${activeTab === 'exams' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-            style={{ borderRadius: '6px', background: activeTab === 'exams' ? 'var(--hub-orange)' : undefined, color: activeTab === 'exams' ? '#fff' : undefined }}
+            style={{ borderRadius: '6px', background: activeTab === 'exams' ? 'var(--hub-orange)' : undefined, color: activeTab === 'exams' ? '#fff' : undefined, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            🩺 Consented Exam Starts ({stats?.overview.total_exam_starts ?? 0})
+            <StethoscopeIcon size={16} color={activeTab === 'exams' ? '#fff' : 'currentColor'} /> Consented Exam Starts ({stats?.overview.total_exam_starts ?? 0})
           </button>
         </div>
 
@@ -719,7 +720,7 @@ export default function AdminDashboardPage() {
           <div className="admin-card-section">
             <div className="admin-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 className="admin-card-title">
-                <span>🩺 Consented Examination Starts</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}><StethoscopeIcon size={18} color="var(--hub-orange)" /> Consented Examination Starts</span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                   ({examStartsData?.pagination.total || stats?.overview.total_exam_starts || 0} total users submitted consent and clicked start)
                 </span>

@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { StethoscopeIcon } from '@/components/StethoscopeIcon';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
   onOpenSelfCheck: () => void;
-  onOpenReminder: () => void;
+  onOpenReminder?: () => void;
   onOpenShare: () => void;
 }
 
@@ -78,18 +79,13 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Action Buttons */}
         <div className="header-actions">
           <button id="btnSelfCheckModal" className="action-btn highlight" onClick={onOpenSelfCheck}>
-            <span className="btn-icon">🩺</span>
+            <span className="btn-icon"><StethoscopeIcon size={16} color="currentColor" /></span>
             <span>Self-Check Guide</span>
-          </button>
-          <button id="btnSetReminder" className="action-btn reminder-btn" onClick={onOpenReminder}>
-            <span className="btn-icon">📅</span>
-            <span>Set Reminder</span>
           </button>
           <button id="btnShareCampaign" className="action-btn share-btn" onClick={onOpenShare} title="Share Campaign">
             <span className="btn-icon">📢</span>
             <span>Share</span>
           </button>
-          
         </div>
       </div>
     </header>

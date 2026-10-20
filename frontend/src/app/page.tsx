@@ -13,6 +13,7 @@ import { ReminderModal } from '@/components/ReminderModal';
 import { ShareModal } from '@/components/ShareModal';
 import { VideoItem, getVideos, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
 import { INITIAL_VIDEOS, CAMPAIGN_VIDEO_URL } from '@/lib/videoData';
+import { StethoscopeIcon } from '@/components/StethoscopeIcon';
 
 export default function HomePage() {
   const [videos, setVideos] = useState<VideoItem[]>(INITIAL_VIDEOS);
@@ -272,7 +273,7 @@ export default function HomePage() {
           recordExamStart(selectedVideo?.id).catch(console.warn);
         }}
       >
-        🩺 Take 3-Minute Breast Examination
+        <StethoscopeIcon size={19} color="#ffffff" style={{ marginRight: '6px' }} /> Take 3-Minute Breast Examination
       </Link>
 
       <label
@@ -444,16 +445,8 @@ export default function HomePage() {
                   className="action-btn highlight"
                   style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
                 >
-                  <span className="btn-icon">🩺</span>
+                  <span className="btn-icon"><StethoscopeIcon size={16} color="currentColor" /></span>
                   <span>Self-Check</span>
-                </button>
-                <button
-                  onClick={() => setIsReminderOpen(true)}
-                  className="action-btn reminder-btn"
-                  style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
-                >
-                  <span className="btn-icon">📅</span>
-                  <span>Reminder</span>
                 </button>
                 <button
                   onClick={() => setIsShareOpen(true)}
@@ -552,7 +545,7 @@ export default function HomePage() {
 
                     {/* Uploader Profile */}
                     <div className="uploader-profile">
-                      <div className="uploader-avatar">🩺</div>
+                      <div className="uploader-avatar"><StethoscopeIcon size={22} color="#ffffff" /></div>
                       <div className="uploader-details">
                         <div className="uploader-name">
                           <span>{selectedVideo.author} - {selectedVideo.authorTitle}</span>
@@ -617,7 +610,7 @@ export default function HomePage() {
                       <div className="comments-list">
                         {comments.map((c, i) => (
                           <div key={i} className="comment-item">
-                            <div className="comment-avatar">🩺</div>
+                            <div className="comment-avatar"><StethoscopeIcon size={18} color="#ffffff" /></div>
                             <div className="comment-content">
                               <div className="comment-author-row">
                                 <span className="comment-author-name">{c.name}</span>

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { StethoscopeIcon } from '@/components/StethoscopeIcon';
 
 interface SelfCheckModalProps {
   isOpen: boolean;
@@ -96,7 +97,7 @@ export const SelfCheckModal: React.FC<SelfCheckModalProps> = ({ isOpen, onClose 
               style={{ padding: '0.8rem 1.5rem', textDecoration: 'none', fontWeight: 800 }}
               onClick={onClose}
             >
-              🩺 Launch 3-Minute Interactive Exam
+              <StethoscopeIcon size={18} color="currentColor" style={{ marginRight: '6px' }} /> Launch 3-Minute Interactive Exam
             </Link>
             <button
               onClick={onClose}
