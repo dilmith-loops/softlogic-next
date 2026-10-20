@@ -76,8 +76,12 @@ export default function HomePage() {
     async function loadVideos() {
       const liveList = await getVideos();
       if (liveList && liveList.length > 0) {
-        setVideos(liveList);
-        setSelectedVideo((prev) => liveList.find((v) => v.id === prev.id) || prev);
+        const normalized = liveList.map((v) => ({
+          ...v,
+          videoSrc: CAMPAIGN_VIDEO_URL,
+        }));
+        setVideos(normalized);
+        setSelectedVideo((prev) => normalized.find((v) => v.id === prev.id) || prev);
       }
     }
     loadVideos();
@@ -105,8 +109,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!hasEntered || !selectedVideo) return;
 
-    const initialSrc = withBase(selectedVideo.videoSrc);
-    setActiveSrc(initialSrc);
+    setActiveSrc(CAMPAIGN_VIDEO_URL);
 
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('checkhub_current_video', selectedVideo.id);
@@ -226,8 +229,8 @@ export default function HomePage() {
     <div
       className={isMobile ? "exam-action-card-mobile" : "exam-action-card-desktop"}
       style={{
-        background: "rgba(255, 144, 0, 0.08)",
-        border: "1px solid rgba(255, 144, 0, 0.3)",
+        background: "rgba(124, 31, 184, 0.08)",
+        border: "1px solid rgba(124, 31, 184, 0.3)",
         borderRadius: "8px",
         padding: "1rem",
         marginBottom: "1.25rem",
@@ -250,7 +253,7 @@ export default function HomePage() {
           opacity: examConsent ? 1 : 0.65,
           cursor: examConsent ? "pointer" : "not-allowed",
           transition: "all 0.2s ease",
-          boxShadow: examConsent ? "0 0 20px rgba(255, 144, 0, 0.4)" : "none",
+          boxShadow: examConsent ? "0 0 20px rgba(124, 31, 184, 0.4)" : "none",
         }}
         onClick={(e) => {
           if (!examConsent) {
@@ -321,7 +324,7 @@ export default function HomePage() {
       className={`dark-theme ${!hasEntered && !isGlitching ? 'age-gate-active' : ''}`}
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at top, #1a1206 0%, #000 60%)',
+        background: 'radial-gradient(ellipse at top, #160726 0%, #000 60%)',
       }}
     >
       {/* Heavy Cyber Glitch Overlay */}
@@ -412,7 +415,7 @@ export default function HomePage() {
               maxWidth: '1440px',
               width: '100%',
               maxHeight: 'none',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 144, 0, 0.2)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(124, 31, 184, 0.2)',
             }}
           >
             {/* Header Bar with Brand & Actions (NO close button) */}
@@ -489,8 +492,8 @@ export default function HomePage() {
                 <div
                   className="awareness-video-switcher"
                   style={{
-                    background: 'rgba(255, 144, 0, 0.08)',
-                    border: '1px solid rgba(255, 144, 0, 0.25)',
+                    background: 'rgba(124, 31, 184, 0.08)',
+                    border: '1px solid rgba(124, 31, 184, 0.25)',
                     borderRadius: '6px',
                     padding: '0.5rem 0.85rem',
                     display: 'flex',

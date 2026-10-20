@@ -171,8 +171,8 @@ export const VideoModal: React.FC<VideoModalProps> = ({
             <div
               className="awareness-video-switcher"
               style={{
-                background: 'rgba(255, 144, 0, 0.08)',
-                border: '1px solid rgba(255, 144, 0, 0.25)',
+                background: 'rgba(124, 31, 184, 0.08)',
+                border: '1px solid rgba(124, 31, 184, 0.25)',
                 borderRadius: '6px',
                 padding: '0.5rem 0.85rem',
                 display: 'flex',
@@ -318,8 +318,8 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                 {/* 3-Minute Breast Examination Action Card above RECOMMENDED CHECKS */}
                 <div
                   style={{
-                    background: "rgba(255, 144, 0, 0.08)",
-                    border: "1px solid rgba(255, 144, 0, 0.3)",
+                    background: "rgba(124, 31, 184, 0.08)",
+                    border: "1px solid rgba(124, 31, 184, 0.3)",
                     borderRadius: "8px",
                     padding: "1rem",
                     marginBottom: "1.25rem",
@@ -342,7 +342,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                       opacity: examConsent ? 1 : 0.65,
                       cursor: examConsent ? "pointer" : "not-allowed",
                       transition: "all 0.2s ease",
-                      boxShadow: examConsent ? "0 0 20px rgba(255, 144, 0, 0.4)" : "none",
+                      boxShadow: examConsent ? "0 0 20px rgba(124, 31, 184, 0.4)" : "none",
                     }}
                     onClick={(e) => {
                       if (!examConsent) {

@@ -324,7 +324,7 @@ export default function AdminDashboardPage() {
             <button onClick={handleExportViewsCsv} className="admin-btn admin-btn-secondary">
               📥 Export Views CSV
             </button>
-            <button onClick={handleExportExamCsv} className="admin-btn admin-btn-secondary" style={{ border: '1px solid rgba(255,144,0,0.5)' }}>
+            <button onClick={handleExportExamCsv} className="admin-btn admin-btn-secondary" style={{ border: '1px solid rgba(124, 31, 184, 0.5)' }}>
               🩺 Export Exam CSV
             </button>
             <button onClick={() => setIsAddAdminOpen(true)} className="admin-btn admin-btn-primary">
@@ -376,7 +376,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Consented Exam Starts Metric Card */}
-          <div className="admin-metric-card" style={{ borderColor: 'rgba(255, 144, 0, 0.4)' }}>
+          <div className="admin-metric-card" style={{ borderColor: 'rgba(124, 31, 184, 0.4)' }}>
             <div className="metric-header">
               <span className="metric-label" style={{ color: 'var(--hub-orange)' }}>Consented Exam Starts</span>
               <span className="metric-icon">🩺</span>
@@ -427,7 +427,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={() => setActiveTab('exams')}
             className={`admin-btn ${activeTab === 'exams' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-            style={{ borderRadius: '6px', background: activeTab === 'exams' ? 'var(--hub-orange)' : undefined, color: activeTab === 'exams' ? '#000' : undefined }}
+            style={{ borderRadius: '6px', background: activeTab === 'exams' ? 'var(--hub-orange)' : undefined, color: activeTab === 'exams' ? '#fff' : undefined }}
           >
             🩺 Consented Exam Starts ({stats?.overview.total_exam_starts ?? 0})
           </button>
@@ -853,9 +853,9 @@ export default function AdminDashboardPage() {
               width: '100%',
               maxWidth: '460px',
               background: '#131318',
-              border: '1px solid rgba(255, 144, 0, 0.35)',
+              border: '1px solid rgba(124, 31, 184, 0.35)',
               borderRadius: '14px',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 144, 0, 0.15)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(124, 31, 184, 0.15)',
               overflow: 'hidden',
             }}
           >
@@ -877,7 +877,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <span
                   style={{
-                    background: 'rgba(255, 144, 0, 0.15)',
+                    background: 'rgba(124, 31, 184, 0.15)',
                     color: 'var(--hub-orange)',
                     fontSize: '0.75rem',
                     fontWeight: 800,
@@ -1078,7 +1078,7 @@ export default function AdminDashboardPage() {
                     borderRadius: '8px',
                     border: 'none',
                     cursor: creatingAdmin ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 0 20px rgba(255, 144, 0, 0.35)',
+                    boxShadow: '0 0 20px rgba(124, 31, 184, 0.35)',
                   }}
                 >
                   {creatingAdmin ? 'Creating Account...' : 'Create Administrator Account'}
@@ -1116,9 +1116,9 @@ export default function AdminDashboardPage() {
               width: '100%',
               maxWidth: '460px',
               background: '#131318',
-              border: '1px solid rgba(255, 144, 0, 0.35)',
+              border: '1px solid rgba(124, 31, 184, 0.35)',
               borderRadius: '14px',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 144, 0, 0.15)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(124, 31, 184, 0.15)',
               overflow: 'hidden',
             }}
           >
@@ -1140,7 +1140,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <span
                   style={{
-                    background: 'rgba(255, 144, 0, 0.15)',
+                    background: 'rgba(124, 31, 184, 0.15)',
                     color: 'var(--hub-orange)',
                     fontSize: '0.75rem',
                     fontWeight: 800,
@@ -1341,7 +1341,7 @@ export default function AdminDashboardPage() {
                     borderRadius: '8px',
                     border: 'none',
                     cursor: updatingProfile ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 0 20px rgba(255, 144, 0, 0.35)',
+                    boxShadow: '0 0 20px rgba(124, 31, 184, 0.35)',
                   }}
                 >
                   {updatingProfile ? 'Saving Changes...' : 'Save Profile Changes'}

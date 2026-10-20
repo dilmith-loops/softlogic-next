@@ -26,7 +26,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Shower monthly: around day 7 to 10 after your period starts when tissue is least swollen."
     ],
     "animationType": "shower-circles",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🚿",
     "badge": "ESSENTIAL ROUTINE",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -53,7 +53,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Examine nipples for sudden retraction, inversion, scaling, or spontaneous fluid discharge."
     ],
     "animationType": "mirror-inspection",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🪞",
     "badge": "STEP 1 FOUNDATION",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -80,7 +80,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Never pick your fingers up completely; slide them smoothly to avoid gaps."
     ],
     "animationType": "grid-palpation",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🩺",
     "badge": "DOCTOR APPROVED",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -107,7 +107,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Inflammatory signs: Warmth, rapid swelling, and pink/purple redness covering over a third of the breast."
     ],
     "animationType": "warning-zones",
-    "accentColor": "#e07f00",
+    "accentColor": "#5b0f8d",
     "icon": "⚠️",
     "badge": "CRITICAL KNOWLEDGE",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -188,7 +188,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Gently compress the nipple between thumb and index finger to test for fluid discharge."
     ],
     "animationType": "lying-palpation",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🛏️",
     "badge": "POSITIONING",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -215,7 +215,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Real proven risk factors: Age, genetic mutations (BRCA1/2), high breast density, alcohol intake, and family history."
     ],
     "animationType": "myths-facts",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "💡",
     "badge": "SCIENCE FIRST",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -242,7 +242,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "When in doubt, compare identical quadrants on both breasts. Asymmetry is what calls for evaluation."
     ],
     "animationType": "tactile-calibration",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🧬",
     "badge": "TACTILE TEST",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -269,7 +269,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Sudden inversion: If a nipple that was previously erect turns inwards, retroareolar tissue must be evaluated."
     ],
     "animationType": "nipple-anatomy",
-    "accentColor": "#e07f00",
+    "accentColor": "#5b0f8d",
     "icon": "🔍",
     "badge": "SYMPTOM ALERT",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -296,7 +296,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "T - TIP: Nipple inversion, retraction, or abnormal discharge."
     ],
     "animationType": "routine-clock",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🎗️",
     "badge": "OFFICIAL CAMPAIGN",
     "videoSrc": CAMPAIGN_VIDEO_URL
@@ -323,7 +323,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
       "Advocate for yourself: If you feel a persistent lump and are told 'you are too young', request an ultrasound."
     ],
     "animationType": "genetic-tree",
-    "accentColor": "#ff9000",
+    "accentColor": "#7c1fb8",
     "icon": "🌱",
     "badge": "UNDER 40 GUIDE",
     "videoSrc": CAMPAIGN_VIDEO_URL

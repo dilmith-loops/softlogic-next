@@ -12,8 +12,17 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = [
     'https://ai.loopsintegrated.co',
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3005',
     'http://localhost:8000',
+    'http://localhost:8005',
     'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3002',
+    'http://127.0.0.1:3005',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:8005',
 ];
 
 if (in_array($origin, $allowedOrigins, true)) {

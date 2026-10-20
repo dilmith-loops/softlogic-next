@@ -89,7 +89,7 @@ export const GlitchTransition: React.FC<GlitchTransitionProps> = ({ active }) =>
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const colors = ['#ff9000', '#ff0055', '#00e5ff', '#ffffff', '#111116', '#ff4081'];
+    const colors = ['#7c1fb8', '#ff0055', '#00e5ff', '#ffffff', '#111116', '#9876d4'];
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -109,7 +109,7 @@ export const GlitchTransition: React.FC<GlitchTransitionProps> = ({ active }) =>
       // Horizontal RGB glitch stripes
       for (let i = 0; i < 6; i++) {
         const y = Math.random() * canvas.height;
-        ctx.fillStyle = i % 2 === 0 ? 'rgba(255, 144, 0, 0.55)' : 'rgba(0, 229, 255, 0.45)';
+        ctx.fillStyle = i % 2 === 0 ? 'rgba(124, 31, 184, 0.55)' : 'rgba(0, 229, 255, 0.45)';
         ctx.fillRect(0, y, canvas.width, 10 + Math.random() * 25);
       }
 
