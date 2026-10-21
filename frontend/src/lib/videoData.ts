@@ -297,7 +297,7 @@ export const INITIAL_VIDEOS: VideoItem[] = [
     ],
     "animationType": "routine-clock",
     "accentColor": "#7c1fb8",
-    "icon": "🎗️",
+    "icon": "🎀",
     "badge": "OFFICIAL CAMPAIGN",
     "videoSrc": CAMPAIGN_VIDEO_URL
   },

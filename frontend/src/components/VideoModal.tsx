@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { VideoItem, recordView, recordExamStart, RecordViewResponse } from '@/lib/api';
 import { CAMPAIGN_VIDEO_URL } from '@/lib/videoData';
 import { StethoscopeIcon } from '@/components/StethoscopeIcon';
+import { PinkRibbonIcon } from '@/components/PinkRibbonIcon';
+import { ThumbUpIcon, ThumbDownIcon } from '@/components/ThumbIcons';
 
 interface VideoModalProps {
   video: VideoItem | null;
@@ -36,13 +38,13 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   const [consentError, setConsentError] = useState<boolean>(false);
   const [comments, setComments] = useState<Array<{ name: string; time: string; text: string; likes: number }>>([
     {
-      name: 'Sarah M. (Breast Cancer Survivor)',
+      name: 'Anonymous User',
       time: '1 day ago',
       text: 'My doctor told me finding it at Stage 1 gave me a 99% survival rate. Doing the circular check in the shower every month literally saved my life.',
       likes: 342,
     },
     {
-      name: 'Dr. James Holloway, M.D.',
+      name: 'Anonymous User',
       time: '3 days ago',
       text: 'Crucial reminder: 80% of lumps are benign cysts! But never wait or guess—always get any new irregularity evaluated clinically with an ultrasound or mammogram.',
       likes: 189,
@@ -181,8 +183,8 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                 gap: '0.5rem',
               }}
             >
-              <span className="switcher-label" style={{ color: 'var(--hub-orange)', fontWeight: 700 }}>
-                🎗️ Official PSA:
+              <span className="switcher-label" style={{ color: 'var(--hub-orange)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <PinkRibbonIcon size={18} /> Official PSA:
               </span>
               <span style={{ fontSize: '0.86rem', color: '#fff', fontWeight: 600 }}>
                 Softlogic Life &amp; WCIC — Breast Cancer Awareness Campaign
@@ -211,18 +213,15 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                         setLikes(hasLiked ? likes - 1 : likes + 1);
                         setHasLiked(!hasLiked);
                       }}
-                      style={{ color: hasLiked ? 'var(--hub-orange)' : undefined }}
+                      style={{ color: '#7c1fb8', borderColor: hasLiked ? '#7c1fb8' : undefined }}
                     >
-                      👍 <span>{Math.floor(likes / 1000)}K</span>
+                      <ThumbUpIcon size={16} color="#7c1fb8" fill={hasLiked ? '#7c1fb8' : 'none'} /> <span>{Math.floor(likes / 1000)}K</span>
                     </button>
-                    <button className="interaction-btn dislike-btn">
-                      👎 <span>42</span>
+                    <button className="interaction-btn dislike-btn" style={{ color: '#7c1fb8' }}>
+                      <ThumbDownIcon size={16} color="#7c1fb8" fill="none" /> <span>42</span>
                     </button>
                     <button className="interaction-btn share-btn-modal" onClick={onOpenShare}>
                       🔗 Share PSA
-                    </button>
-                    <button className="interaction-btn save-btn">
-                      ⭐ Save Guide
                     </button>
                   </div>
                 </div>
@@ -254,9 +253,6 @@ export const VideoModal: React.FC<VideoModalProps> = ({
 
                 {/* Quick Action CTA Buttons */}
                 <div className="modal-cta-buttons">
-                  <button className="btn-cta-pink" onClick={onOpenReminder}>
-                    📅 Set Monthly Calendar Reminder
-                  </button>
                   <button className="btn-cta-outline" onClick={onOpenShare}>
                     📢 Prank A Friend To Save Their Life
                   </button>
@@ -302,7 +298,9 @@ export const VideoModal: React.FC<VideoModalProps> = ({
                           </div>
                           <div className="comment-body-text">{c.text}</div>
                           <div className="comment-actions">
-                            <button className="comment-like-btn">👍 {c.likes}</button>
+                            <button className="comment-like-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#7c1fb8' }}>
+                              <ThumbUpIcon size={13} color="#7c1fb8" fill="#7c1fb8" /> {c.likes}
+                            </button>
                             <button className="comment-reply-btn">Reply</button>
                           </div>
                         </div>
