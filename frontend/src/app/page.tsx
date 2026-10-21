@@ -397,7 +397,7 @@ export default function HomePage() {
                       </div>
                       <div className="card-stats">
                         <span>👁️ {video.viewsCount || 0} real views</span>
-                        <span className="rating">👍 {video.rating}%</span>
+                        <span className="rating"><ThumbUpIcon size={12} color="#c084fc" filled={true} /> {video.rating}%</span>
                       </div>
                     </div>
                   </div>
@@ -524,17 +524,16 @@ export default function HomePage() {
                       </div>
                       <div className="stats-right">
                         <button
-                          className="interaction-btn like-btn"
+                          className={`interaction-btn like-btn ${hasLiked ? 'active' : ''}`}
                           onClick={() => {
                             setLikes(hasLiked ? likes - 1 : likes + 1);
                             setHasLiked(!hasLiked);
                           }}
-                          style={{ color: '#7c1fb8', borderColor: hasLiked ? '#7c1fb8' : undefined }}
                         >
-                          <ThumbUpIcon size={16} color="#7c1fb8" fill={hasLiked ? '#7c1fb8' : 'none'} /> <span>{likes}</span>
+                          <ThumbUpIcon size={16} color={hasLiked ? '#ffffff' : '#c084fc'} filled={hasLiked} /> <span>{likes}</span>
                         </button>
-                        <button className="interaction-btn dislike-btn" style={{ color: '#7c1fb8' }}>
-                          <ThumbDownIcon size={16} color="#7c1fb8" fill="none" /> <span>42</span>
+                        <button className="interaction-btn dislike-btn">
+                          <ThumbDownIcon size={16} color="#c084fc" filled={false} /> <span>42</span>
                         </button>
                         <button className="interaction-btn share-btn-modal" onClick={() => setIsShareOpen(true)}>
                           🔗 Share PSA
@@ -614,8 +613,8 @@ export default function HomePage() {
                               </div>
                               <div className="comment-body-text">{c.text}</div>
                               <div className="comment-actions">
-                                <button className="comment-like-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#7c1fb8' }}>
-                                  <ThumbUpIcon size={13} color="#7c1fb8" fill="#7c1fb8" /> {c.likes}
+                                <button className="comment-like-btn">
+                                  <ThumbUpIcon size={13} color="#a855f7" filled={true} /> {c.likes}
                                 </button>
                                 <button className="comment-reply-btn">Reply</button>
                               </div>
@@ -653,8 +652,12 @@ export default function HomePage() {
                       <div className="related-info">
                         <div className="related-title">{item.title}</div>
                         <div className="related-meta">{item.author}</div>
-                        <div className="related-meta">
-                          👁️ {item.viewsCount || 0} real views · 👍 {item.rating}%
+                        <div className="related-meta" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>👁️ {item.viewsCount || 0} real views</span>
+                          <span>·</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#c084fc', fontWeight: 600 }}>
+                            <ThumbUpIcon size={11} color="#a855f7" filled={true} /> {item.rating}%
+                          </span>
                         </div>
                       </div>
                     </div>
