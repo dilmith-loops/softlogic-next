@@ -4,7 +4,9 @@
   "description": "CheckHub Breast Cancer Awareness Campaign for Hostinger hPanel under /softlogic",
   "scripts": {
     "build": "cd frontend && npm run build && cp -r out/index.html out/404.html out/_next out/exam out/admin out/images out/*.mp4 out/*.webm out/favicon.ico ../ && cd .. && echo 'Production build exported to root successfully.'",
-    "dev": "cd frontend && npm run dev"
+    "dev": "php -S 127.0.0.1:8005 router.php & cd frontend && npm run dev",
+    "dev:api": "php -S 127.0.0.1:8005 router.php",
+    "dev:frontend": "cd frontend && npm run dev"
   },
   "keywords": ["breast-cancer-awareness", "softlogic", "loops-integrated"],
   "author": "Loops Integrated",

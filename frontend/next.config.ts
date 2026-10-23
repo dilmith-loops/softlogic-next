@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   ...(isDev ? {} : { output: "export" }),
   basePath: "/softlogic",
   trailingSlash: true,
+  skipTrailingSlashRedirect: true,
   images: {
     unoptimized: true,
   },
