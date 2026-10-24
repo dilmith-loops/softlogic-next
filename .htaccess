@@ -8,6 +8,10 @@ Options -Indexes -MultiViews
     RewriteEngine On
     RewriteBase /softlogic/
 
+    # Strip /public/ from browser address bar if user types or lands on it
+    RewriteCond %{THE_REQUEST} \s/+(?:softlogic/)?public/([^\s?]*) [NC]
+    RewriteRule ^ /softlogic/%1 [R=301,L]
+
     # Direct root visits to public/index.html
     RewriteRule ^$ public/index.html [L]
 

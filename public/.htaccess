@@ -6,6 +6,10 @@ DirectoryIndex index.html index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Redirect any URL containing /public/ to the clean URL without /public/
+    RewriteCond %{THE_REQUEST} \s/+(?:softlogic/)?public/([^\s?]*) [NC]
+    RewriteRule ^ /softlogic/%1 [R=301,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
