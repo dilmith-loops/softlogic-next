@@ -6,6 +6,10 @@ Options -Indexes -MultiViews
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /softlogic/
+
+    # Direct root visits to public/index.html
+    RewriteRule ^$ public/index.html [L]
 
     # Prevent loop once inside public/
     RewriteRule ^public/ - [L]
@@ -17,4 +21,5 @@ Options -Indexes -MultiViews
 <IfModule !mod_rewrite.c>
     Require all denied
 </IfModule>
+
 
