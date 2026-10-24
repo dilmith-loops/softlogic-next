@@ -1,14 +1,15 @@
 {
-  "name": "checkhub-softlogic",
-  "version": "1.0.0",
-  "description": "CheckHub Breast Cancer Awareness Campaign for Hostinger hPanel under /softlogic",
-  "scripts": {
-    "build": "cd frontend && npm run build && cp -r out/index.html out/404.html out/_next out/exam out/admin out/images out/*.mp4 out/*.webm out/favicon.ico ../ && cd .. && echo 'Production build exported to root successfully.'",
-    "dev": "php -S 127.0.0.1:8005 router.php & cd frontend && npm run dev",
-    "dev:api": "php -S 127.0.0.1:8005 router.php",
-    "dev:frontend": "cd frontend && npm run dev"
-  },
-  "keywords": ["breast-cancer-awareness", "softlogic", "loops-integrated"],
-  "author": "Loops Integrated",
-  "license": "ISC"
+    "$schema": "https://www.schemastore.org/package.json",
+    "name": "checkhub-softlogic",
+    "private": true,
+    "description": "CheckHub Breast Cancer Awareness Campaign for Hostinger hPanel under /softlogic",
+    "scripts": {
+        "build": "npm --prefix resources/nextjs run build && npm run publish:frontend",
+        "publish:frontend": "ls -A resources/nextjs/out | while read -r f; do rm -rf \"public/$f\"; done && cp -R resources/nextjs/out/. public/",
+        "dev": "php artisan serve & npm --prefix resources/nextjs run dev",
+        "dev:api": "php artisan serve",
+        "dev:frontend": "npm --prefix resources/nextjs run dev"
+    },
+    "author": "Loops Integrated",
+    "license": "ISC"
 }

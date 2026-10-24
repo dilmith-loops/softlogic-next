@@ -1,29 +1,27 @@
-# Dependencies
-backend/vendor/
-frontend/node_modules/
-
-# Environment files
-backend/.env
-backend/.env.backup
-backend/.env.production
-frontend/.env*.local
-
-# Build artifacts
-frontend/.next/
-frontend/out/
-frontend/build/
-
-# Storage & Cache
-backend/storage/*.key
-backend/storage/framework/cache/*
-backend/storage/framework/sessions/*
-backend/storage/framework/views/*
-backend/storage/logs/*
-backend/bootstrap/cache/*
-
-# Logs & temp
 *.log
-*.sqlite
 .DS_Store
-.vscode/
-.idea/
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db

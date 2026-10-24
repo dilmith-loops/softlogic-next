@@ -1,0 +1,79 @@
+Options -Indexes -MultiViews +FollowSymLinks
+
+# Exported Next.js pages are served as static index.html files; everything else goes to Laravel.
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Block dotfiles
+    RewriteRule (^|/)\. - [F,L]
+
+    # The video player page is a Laravel route (routes/web.php), not a static directory
+    RewriteRule ^watch/?$ index.php [L]
+
+    # Root-level image URLs fall back to images/ (e.g. /thumb_1.jpg -> /images/thumb_1.jpg)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^([^/]+\.(jpg|jpeg|png|svg|webp|ico))$ images/$1 [L]
+
+    # Send Requests To Front Controller (no trailing-slash redirect: the exported site uses trailing slashes)...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Byte-Range Streaming Support & Strict Security Headers
+<IfModule mod_headers.c>
+  Header set Accept-Ranges bytes
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header unset X-Powered-By
+</IfModule>
+
+# Caching & MIME Types for High-Performance Streaming
+<IfModule mod_mime.c>
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType image/jpeg .jpg .jpeg
+  AddType image/png .png
+  AddType image/svg+xml .svg
+  AddType text/css .css
+  AddType application/javascript .js
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 day"
+
+  # HTML & JSON & PHP must NEVER be cached by server expires
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType application/x-httpd-php "access plus 0 seconds"
+
+  # Media
+  ExpiresByType video/mp4 "access plus 1 month"
+  ExpiresByType video/webm "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+
+  # Styles & Scripts
+  ExpiresByType text/css "access plus 1 week"
+  ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+# Gzip Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>

@@ -63,70 +63,60 @@ Records every video play event with user IP and timestamp.
 
 ---
 
+### 4. `exam_starts` Table
+Records every consented "Take Breast Examination" click.
+- `id`, `ip_address`, `user_agent`, `video_id` (nullable), `consented`, `started_at`
+
+---
+
 ## 🔐 Administrator Credentials
 
-Per requirement, **no admin credentials are hardcoded or stored in `.env`**. They reside solely in MySQL:
+Admin accounts live only in the MySQL `users` table. No credentials are stored in code.
 
-- **Default Seeded Admin**:
-  - Email: `admin@checkhub.org`
-  - Password: `Admin@CheckHub2026!`
-- **CLI Artisan Command to Create/Reset Admins**:
+- **Create/reset an admin from the CLI**:
   ```bash
-  cd backend
   php artisan app:create-admin
   # Or non-interactively:
   php artisan app:create-admin --name="Security Admin" --email="it@checkhub.org" --password="YourSecurePassword123"
   ```
-- **Web UI Admin Creation**:
-  - Authenticated administrators can click `+ Add Admin (DB)` in `/admin` to insert additional admins directly into the database.
+- **Seeder**: `php artisan db:seed` creates an admin only when `ADMIN_EMAIL` / `ADMIN_INITIAL_PASSWORD` are set in `.env`.
+- **Web UI**: authenticated administrators can click `+ Add Admin (DB)` in `/admin`.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- PHP >= 8.2 with `php-mysql`, `php-pdo`, `php-curl`
+- PHP >= 8.3 with `pdo_mysql`
 - Composer 2
-- MySQL Server (running locally on port 3306)
-- Node.js >= 18 and npm
+- MySQL Server
+- Node.js >= 20 and npm
 
-### 1. Database Setup
+### 1. Laravel (API)
 ```bash
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS checkhub_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-```
-
-### 2. Backend Setup (Laravel)
-```bash
-cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
-
-# Configure MySQL in .env:
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=checkhub_db
-# DB_USERNAME=root
-# DB_PASSWORD=
-
-# Run migrations and seed the 12 awareness videos + default admin:
-php artisan migrate:fresh --seed
-
-# Start backend server (port 8000):
-php artisan serve --host=127.0.0.1 --port=8000
+# Configure DB_* in .env, then:
+php artisan migrate --seed
 ```
 
-### 3. Frontend Setup (Next.js)
+### 2. Next.js (UI, in resources/nextjs)
 ```bash
-cd ../frontend
-npm install
-
-# Start Next.js dev server (port 3000):
-npm run dev
+npm --prefix resources/nextjs install
 ```
 
-Visit **`http://localhost:3000`** in your browser.
+### 3. Run locally
+```bash
+npm run dev            # php artisan serve (:8000) + next dev (:3000)
+```
+Visit **`http://localhost:3000/softlogic/`**. The Next dev server proxies `/softlogic/api/*` to Laravel.
+
+### 4. Build for production
+```bash
+npm run build          # next build, then copies the static export into public/
+```
+Commit the updated `public/` output; see [docs/HOSTINGER_HPANEL_DEPLOY_GUIDE.md](docs/HOSTINGER_HPANEL_DEPLOY_GUIDE.md).
 
 ---
 
@@ -134,63 +124,55 @@ Visit **`http://localhost:3000`** in your browser.
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `GET` | `/api/videos` | Fetch videos with dynamic views & unique IP counts | Public |
+| `GET` | `/api/videos` | Fetch videos with real view & unique IP counts | Public |
 | `GET` | `/api/videos/{id}` | Fetch single video details | Public |
-| `POST` | `/api/views` | **Record video play event with user IP & timestamp** | Public |
-| `POST` | `/api/admin/login` | Authenticate admin against MySQL `users` table | Public |
+| `POST` | `/api/views` | **Record video play event with user IP & timestamp** (30/min per IP) | Public |
+| `POST` | `/api/exam-starts` | Record a consented self-exam start (10/min per IP; alias `/api/exam/start`) | Public |
+| `POST` | `/api/admin/login` | Authenticate admin (locks IP for 15 min after 5 failures) | Public |
 | `POST` | `/api/admin/logout` | Revoke admin access token | Sanctum |
 | `GET` | `/api/admin/me` | Get authenticated admin profile | Sanctum |
-| `GET` | `/api/admin/stats` | Overview metrics, video breakdowns, top IPs | Sanctum |
+| `GET` | `/api/admin/stats` | Overview metrics, video breakdowns, top IPs, exam starts | Sanctum |
 | `GET` | `/api/admin/views` | Paginated view logs with IP addresses & dates | Sanctum |
-| `GET` | `/api/admin/export` | Download view records as CSV file | Sanctum |
-| `POST` | `/api/admin/create-user` | Insert new administrator into MySQL `users` | Sanctum |
+| `GET` | `/api/admin/exam-starts` | Paginated consented exam starts | Sanctum |
+| `GET` | `/api/admin/export` | Download CSV (`?type=views` default, `?type=exam`) | Sanctum |
+| `POST` | `/api/admin/users` | Create a new administrator | Sanctum |
+| `POST` | `/api/admin/profile` | Update own name, email, optional password | Sanctum |
+
+On Hostinger these are served under `/softlogic/api/*`.
 
 ---
 
 ## 📁 Project Structure
 
+A standard Laravel application. The UI is a Next.js project kept under `resources/nextjs`, exported as static files into `public/`.
+
 ```
 softlogic-next/
-├── backend/                  # Laravel 11 API Backend
-│   ├── app/
-│   │   ├── Console/Commands/CreateAdmin.php
-│   │   ├── Http/Controllers/Api/
-│   │   │   ├── AdminController.php
-│   │   │   ├── VideoController.php
-│   │   │   └── VideoViewController.php
-│   │   └── Models/
-│   │       ├── User.php
-│   │       ├── Video.php
-│   │       └── VideoView.php
-│   ├── database/
-│   │   ├── migrations/
-│   │   └── seeders/
-│   │       ├── AdminUserSeeder.php
-│   │       ├── VideoSeeder.php
-│   │       └── DatabaseSeeder.php
-│   └── routes/api.php
-├── frontend/                 # Next.js 15 Application
-│   ├── public/               # Awareness videos & thumbnails
-│   └── src/
-│       ├── app/
-│       │   ├── page.tsx       # Main CheckHub Portal & Video Grid
-│       │   ├── layout.tsx     # Global fonts, metadata & dark theme
-│       │   ├── globals.css    # Complete CheckHub design system + Admin CSS
-│       │   ├── exam/page.tsx  # Guided 3-minute self-exam story experience
-│       │   └── admin/
-│       │       ├── page.tsx   # Admin Analytics Dashboard & IP Stream Table
-│       │       └── login/page.tsx # Database Admin Authentication
-│       ├── components/
-│       │   ├── VideoModal.tsx # Video player dialog with automatic IP logger
-│       │   ├── Header.tsx
-│       │   ├── SubNav.tsx
-│       │   ├── AgeGateModal.tsx
-│       │   ├── GlitchTransition.tsx
-│       │   ├── SelfCheckModal.tsx
-│       │   ├── ReminderModal.tsx
-│       │   └── ShareModal.tsx
-│       └── lib/
-│           ├── api.ts         # Backend API client & TypeScript interfaces
-│           └── videoData.ts   # Video data models & catalog
-└── README.md
+├── app/
+│   ├── Console/Commands/CreateAdmin.php
+│   ├── Http/Controllers/Api/      # Admin, Video, VideoView, ExamStart controllers
+│   ├── Models/                    # User, Video, VideoView, ExamStart
+│   ├── Providers/AppServiceProvider.php   # API rate limiters
+│   └── Support/                   # ClientIp, CsvCell helpers
+├── bootstrap/
+├── config/
+├── database/
+│   ├── migrations/
+│   └── seeders/                   # AdminUserSeeder, VideoSeeder (+ videos_data.json)
+├── docs/                          # Deploy guide, security audit reports
+├── public/                        # Web root: index.php + built Next.js site (_next/, exam/, admin/, media)
+├── resources/
+│   └── nextjs/                    # Next.js source (App Router)
+│       ├── public/                # Awareness videos & thumbnails (copied into the export)
+│       └── src/
+│           ├── app/               # page.tsx, exam/, admin/, admin/login/
+│           ├── components/        # VideoModal, AgeGateModal, GlitchTransition, ...
+│           └── lib/               # api.ts (API client), videoData.ts
+├── routes/
+│   ├── api.php
+│   └── web.php                    # Serves exported pages under `php artisan serve`
+├── storage/
+├── .htaccess                      # Hostinger: routes everything into public/
+├── composer.json
+└── package.json                   # build / dev scripts
 ```
