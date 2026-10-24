@@ -20,7 +20,7 @@ export default function AgeGatePage() {
 
   // Full page load (not client-side routing) so the request goes through the Laravel route
   const goToWatch = () => {
-    window.location.assign(withBase('/watch/') + window.location.search);
+    window.location.assign(withBase('/videoplayer/') + window.location.search);
   };
 
   // Visitors who already passed the gate this session go straight to the player

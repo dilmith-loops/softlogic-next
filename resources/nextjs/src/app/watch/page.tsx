@@ -61,7 +61,7 @@ export default function WatchPage() {
     if (typeof window !== 'undefined') {
       const enteredSession = sessionStorage.getItem('checkhub_has_entered');
       if (enteredSession !== 'true') {
-        window.location.replace(withBase('/') + window.location.search);
+        window.location.replace(withBase('/landingpage/') + window.location.search);
         return;
       }
       setHasEntered(true);

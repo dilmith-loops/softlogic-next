@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\Route;
 | through `php artisan serve`, which only serves real files.
 */
 
-// Age gate (index.html); both of its buttons lead to the watch page.
+// Age gate (index.html); leads to the video player page.
 Route::get('/', fn () => response()->file(public_path('index.html')));
+Route::get('/landingpage', fn () => response()->file(public_path('index.html')))->name('landingpage');
 
 Route::get('/watch', [PageController::class, 'watch'])->name('watch');
+Route::get('/videoplayer', [PageController::class, 'watch'])->name('videoplayer');
 
 Route::fallback(function (Request $request) {
     abort_if($request->is('api/*'), 404);

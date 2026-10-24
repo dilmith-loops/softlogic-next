@@ -17,8 +17,9 @@ DirectoryIndex index.html index.php
     # Block dotfiles
     RewriteRule (^|/)\. - [F,L]
 
-    # The video player page is a Laravel route (routes/web.php), not a static directory
-    RewriteRule ^watch/?$ index.php [L]
+    # Video player & landing page routes (routes/web.php)
+    RewriteRule ^(watch|videoplayer)/?$ index.php [L]
+    RewriteRule ^landingpage/?$ index.php [L]
 
     # Root-level image URLs fall back to images/ (e.g. /thumb_1.jpg -> /images/thumb_1.jpg)
     RewriteCond %{REQUEST_FILENAME} !-f
