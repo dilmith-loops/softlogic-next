@@ -21,6 +21,7 @@ return [
 
     'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', implode(',', [
         'https://ai.loopsintegrated.co',
+        'https://uat.loopsintegrated.co',
         'http://localhost:3000',
         'http://localhost:3001',
         'http://localhost:3002',

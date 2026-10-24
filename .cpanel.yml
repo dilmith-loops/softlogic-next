@@ -1,0 +1,19 @@
+# cPanel Git Version Control deployment (runs automatically after `git push cpanel main`).
+# Copies the app into the site folder served at https://uat.loopsintegrated.co/softlogic,
+# then installs PHP dependencies, migrates the database and rebuilds Laravel's caches.
+#
+# DEPLOYPATH must be the "softlogic" folder inside the uat subdomain's document root
+# (cPanel → Domains → uat.loopsintegrated.co → Document Root). Adjust if yours differs.
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=$HOME/uat.loopsintegrated.co/softlogic
+    - mkdir -p $DEPLOYPATH
+    # Code: mirror the repo, but keep the server's .env, vendor/, storage/ and caches.
+    # resources/nextjs (Next.js source + media) is not needed; the built site is in public/.
+    - rsync -a --delete --exclude=/.git --exclude=/.env --exclude=/vendor --exclude=/storage --exclude='/bootstrap/cache/*.php' --exclude=/resources/nextjs ./ $DEPLOYPATH/
+    # storage/ skeleton on first deploy only (never overwrites logs, sessions, etc.)
+    - rsync -a --ignore-existing ./storage/ $DEPLOYPATH/storage/
+    - cd $DEPLOYPATH && composer install --no-dev --optimize-autoloader --no-interaction
+    # Database + caches need .env; on the very first push create .env, then push again.
+    - cd $DEPLOYPATH && if [ -f .env ]; then php artisan migrate --force && php artisan db:seed --class=VideoSeeder --force && php artisan config:cache && php artisan route:cache; fi
