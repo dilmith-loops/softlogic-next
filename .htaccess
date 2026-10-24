@@ -18,8 +18,4 @@ Options -Indexes -MultiViews
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
-<IfModule !mod_rewrite.c>
-    Require all denied
-</IfModule>
-
 
