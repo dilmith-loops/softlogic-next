@@ -4133,6 +4133,23 @@ html, body {
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
 }
 
+/* Video variant: the stage takes the video's 16:9 shape */
+.exam-stage.has-video {
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.exam-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  cursor: pointer;
+}
+
 .exam-slide {
   position: absolute;
   inset: 0;
